@@ -2,6 +2,7 @@ package sort;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Random;
 
 /**
  *
@@ -25,21 +26,17 @@ public class MergeSort<T extends Comparable<T>> implements Runnable {
     public void run() {
         if(list.length < 2) return;        
         
-        //TODO: Split Arrays...
-        T[] a = Arrays.copyOfRange(list, 0, list.length/2);
-        T[] b = Arrays.copyOfRange(list, list.length / 2, list.length);
+        T[] a = Arrays.copyOfRange(list, 0, (list.length/2));
+        T[] b = Arrays.copyOfRange(list, (list.length/2), list.length);
         
         MergeSort<T> msa = new MergeSort(a);
         MergeSort<T> msb = new MergeSort(b);
-        
-        msa.show();       
-        msb.show();
                   
         msa.run();        
         msb.run();
         
         a = msa.get();
-        b = msa.get();
+        b = msb.get();
         
         merge(a,b);
     }    
@@ -52,20 +49,35 @@ public class MergeSort<T extends Comparable<T>> implements Runnable {
     public void merge(T[] a, T[] b) {
         int i = 0, j = 0, k = 0;
         
+        /*
+        System.out.println("Merge: List.length="+list.length+", a.length"+a.length+",b.length="+b.length);
+        System.out.println(Arrays.toString(list));
+        System.out.println(Arrays.toString(a));
+        System.out.println(Arrays.toString(b));
+        */
+        
         while(i < a.length && j < b.length) {
             if(b[j].compareTo(a[i]) < 0) {
-                list[k++] = b[j++];
+                list[k] = b[j];
+                j++;
             } else {
-                list[k++] = a[i++];
+                list[k] = a[i];
+                i++;
             }
+            
+            k++;
         }
         
         while(i < a.length) {
-            list[k++] = a[i++];
+            list[k] = a[i];
+            k++;
+            i++;
         }
         
         while(j < b.length) {
-            list[k++] = b[j++];
+            list[k] = b[j];
+            k++;
+            j++;
         }
         
     }
@@ -92,26 +104,23 @@ public class MergeSort<T extends Comparable<T>> implements Runnable {
      * 
      * @param args 
      */
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {        
+        long start, end;
+        Integer[] test = new Integer[1000000];
+        Random rand = new Random();
         
-        Integer[] test = {0,0,0,0};
-                
+        for(int i = 0; i < test.length; i++) {
+            test[i] = (int) (rand.nextDouble() * 10);
+        }
+        
         MergeSort ms = new MergeSort(test);
         
-        Integer[] a = {8,3};
-        Integer[] b = {2,9};
-        
-        ms.merge(a, b);
         ms.show();
-        
-        /*Integer[] test = {7,3,6};        
-        
-        
-        
-        ms.show();
-
+        start = System.currentTimeMillis();
         ms.run();
-        
-        ms.show();*/
-    }
+        end = System.currentTimeMillis();
+        ms.show();
+                
+        System.out.println("The algorithm took: " + (end - start) + " ms");
+    }*/
 }
