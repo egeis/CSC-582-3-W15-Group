@@ -104,9 +104,9 @@ public class MergeSort<T extends Comparable<T>> implements Runnable {
      * 
      * @param args 
      */
-    /*public static void main(String[] args) {        
+    public static void main(String[] args) {        
         long start, end;
-        Integer[] test = new Integer[1000000];
+        Integer[] test = new Integer[10000];
         Random rand = new Random();
         
         for(int i = 0; i < test.length; i++) {
@@ -122,5 +122,5 @@ public class MergeSort<T extends Comparable<T>> implements Runnable {
         ms.show();
                 
         System.out.println("The algorithm took: " + (end - start) + " ms");
-    }*/
+    }
 }

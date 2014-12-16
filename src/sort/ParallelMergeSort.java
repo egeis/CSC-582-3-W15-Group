@@ -15,6 +15,7 @@ import java.util.concurrent.FutureTask;
 public class ParallelMergeSort<T extends Comparable<T>> implements Callable<T[]> {
         
     protected T[] list;
+
     public static ExecutorService executor;
     
     public ParallelMergeSort(T[] list) 
@@ -27,15 +28,30 @@ public class ParallelMergeSort<T extends Comparable<T>> implements Callable<T[]>
     public T[] call() throws Exception {
         if(list.length <= 1) return list;
         
-        FutureTask<T[]> fa = new FutureTask<T[]>(new MergeSort<T>(Arrays.copyOfRange(list, 0, (list.length/2))));
-        FutureTask<T[]> fb = new FutureTask<T[]>(new MergeSort<T>(Arrays.copyOfRange(list, (list.length/2), list.length)));            
+        FutureTask<T[]> fa = new FutureTask<T[]>(new ParallelMergeSort<T>(Arrays.copyOfRange(list, 0, (list.length/2))));
+        FutureTask<T[]> fb = new FutureTask<T[]>(new ParallelMergeSort<T>(Arrays.copyOfRange(list, (list.length/2), list.length)));            
         
         executor.execute(fa);
         executor.execute(fb);
         
         T[] a = fa.get();
         T[] b = fb.get();
-            
+        
+        return merge(a,b);
+    }
+    
+    private void sort() {
+        int N = list.length;
+        Comparable[] aux = new Comparable[N];
+        for (int n = 1; n < N; n = n+n) {
+            for (int i = 0; i < N-n; i += n+n) {
+                int k = i+n-1;
+                int j = Math.min(i+n+n-1, N-1);
+            }
+        }
+    }
+     
+    private T[] merge(T[]a, T[]b) {
         int i = 0, j = 0, k = 0;
         /*
         System.out.println("Merge: List.length="+list.length+", a.length"+a.length+",b.length="+b.length);
@@ -69,27 +85,18 @@ public class ParallelMergeSort<T extends Comparable<T>> implements Callable<T[]>
         
         return list;
     }
-
-    /**
-     * 
-     */
-    public void print() {
-        for(int i = 0; i < list.length; i++) {
-            System.out.print(list[i].toString() +((i < list.length - 1)?",":""));
-        }
-        System.out.println();
-    }
-    
+        
     public static void main(String[] args) {
         
         long start, end;
-        Integer[] test = new Integer[10000000];
+        Integer[] test = new Integer[10000];
         Random rand = new Random();
         
         for(int i = 0; i < test.length; i++) {
             test[i] = (int) (rand.nextDouble() * 10);
         }
-         System.out.println(Arrays.toString(test));
+        
+        //System.out.println(Arrays.toString(test));
         
         FutureTask<Integer[]> fa = new FutureTask<Integer[]>(new ParallelMergeSort(test));
         start = System.currentTimeMillis();
@@ -100,10 +107,10 @@ public class ParallelMergeSort<T extends Comparable<T>> implements Callable<T[]>
         } catch(Exception e) {
             
         }
+        executor.shutdown();
+        
         end = System.currentTimeMillis();
         System.out.println("The algorithm took: " + (end - start) + " ms");
-        
-        if (executor != null) executor.shutdown();
         System.out.println(Arrays.toString(test));
     }
 }
