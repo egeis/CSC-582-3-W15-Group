@@ -9,19 +9,23 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 /**
  *
  * @author Richard
+ * @param <T>
  */
 public class Merge<T extends Comparable<T>> implements Callable<T[]> {
+    
+    private Class<T> tClass;
     
     private T[] a;
     private T[] b;
     private FutureTask<T[]> fa;
     private FutureTask<T[]> fb;
-    private List<T> results = new ArrayList<T>(); 
+    private List<T> results = new ArrayList<>(); 
     private boolean isDone = false;
     
     public Merge(T values) {
@@ -34,17 +38,19 @@ public class Merge<T extends Comparable<T>> implements Callable<T[]> {
         this.fb = fb;
     }
     
+    @Override
     public T[] call() throws Exception {        
-        int i = 0, j = 0, k = 0;
+        int i = 0, j = 0;
                  
         if(!isDone) {
             try {
                 a = fa.get();
                 b = fb.get();
-            } catch(Exception e) {
-                System.out.println("[Error]");
+            } catch (ExecutionException e) {
+                System.out.println("[Error]:"+e.getCause());
+                System.out.println("[Status] Futures are done:"+fa.isDone()+" and "+fb.isDone());
             }
-            
+                        
             while(i < a.length && j < b.length) {
                 if(b[j].compareTo(a[i]) < 0) {
                     results.add(b[j]);
@@ -53,25 +59,21 @@ public class Merge<T extends Comparable<T>> implements Callable<T[]> {
                     results.add(a[i]);
                     i++;
                 }
-
-                k++;
             }
 
             while(i < a.length) {
                 results.add(a[i]);
-                k++;
                 i++;
             }
 
             while(j < b.length) {
                 results.add(b[j]);
-                k++;
                 j++;
             }
         }
         
         System.out.println("[Debug]: Merge Length "+results.size());
         
-        return results.toArray( (T[]) Array.newInstance(results.getClass(), 0) );
+        return results.toArray( (T[]) Array.newInstance(tClass.getClass(),0) );
     }
 }

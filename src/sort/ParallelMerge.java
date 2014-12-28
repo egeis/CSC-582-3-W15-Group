@@ -42,7 +42,6 @@ public class ParallelMerge<T extends Comparable<T>> implements Callable<T[]> {
             FutureTask<T[]> fa = list.remove(0);
             FutureTask<T[]> fb = list.remove(0);
 
-
             FutureTask<T[]> ft = new FutureTask(new Merge(fa,fb));
             list.add(ft);
             executor.execute(ft);
@@ -56,7 +55,7 @@ public class ParallelMerge<T extends Comparable<T>> implements Callable<T[]> {
     public static void main(String[] args) {
         
         long start, end;
-        Integer[] test = new Integer[4];
+        Integer[] test = new Integer[16];
         Random rand = new Random();
         
         for(int i = 0; i < test.length; i++) {
