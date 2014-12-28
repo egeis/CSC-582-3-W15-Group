@@ -52,7 +52,7 @@ public class ParallelMergeSort<T extends Comparable<T>> implements Callable<T[]>
         return merge(a,b);**/
     }
      
-    private T[] merge(FutureTask<T[]> fa, FutureTask<T[]>fb) {
+    private T[] merge(FutureTask<T[]> fa, FutureTask<T[]>fb) throws Exception {
         int i = 0, j = 0, k = 0;
         
         T[] a = fa.get();
