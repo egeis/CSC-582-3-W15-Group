@@ -27,8 +27,20 @@ public class ParallelMergeSort<T extends Comparable<T>> implements Callable<T[]>
     @Override
     public T[] call() throws Exception {
         if(list.length <= 1) return list;
+                
         
-        FutureTask<T[]> fa = new FutureTask<T[]>(new ParallelMergeSort<T>(Arrays.copyOfRange(list, 0, (list.length/2))));
+        /**
+        for (int n = 1; n < N; n = n+n) {
+            for (int i = 0; i < N-n; i += n+n) {
+                int lo = i;
+                int m  = i+n-1;
+                int hi = Math.min(i+n+n-1, N-1);
+                merge(a, aux, lo, m, hi);
+            }
+        }**/
+        
+        
+        /**FutureTask<T[]> fa = new FutureTask<T[]>(new ParallelMergeSort<T>(Arrays.copyOfRange(list, 0, (list.length/2))));
         FutureTask<T[]> fb = new FutureTask<T[]>(new ParallelMergeSort<T>(Arrays.copyOfRange(list, (list.length/2), list.length)));            
         
         executor.execute(fa);
@@ -37,28 +49,15 @@ public class ParallelMergeSort<T extends Comparable<T>> implements Callable<T[]>
         T[] a = fa.get();
         T[] b = fb.get();
         
-        return merge(a,b);
-    }
-    
-    private void sort() {
-        int N = list.length;
-        Comparable[] aux = new Comparable[N];
-        for (int n = 1; n < N; n = n+n) {
-            for (int i = 0; i < N-n; i += n+n) {
-                int k = i+n-1;
-                int j = Math.min(i+n+n-1, N-1);
-            }
-        }
+        return merge(a,b);**/
     }
      
-    private T[] merge(T[]a, T[]b) {
+    private T[] merge(FutureTask<T[]> fa, FutureTask<T[]>fb) {
         int i = 0, j = 0, k = 0;
-        /*
-        System.out.println("Merge: List.length="+list.length+", a.length"+a.length+",b.length="+b.length);
-        System.out.println(Arrays.toString(list));
-        System.out.println(Arrays.toString(a));
-        System.out.println(Arrays.toString(b));
-        */
+        
+        T[] a = fa.get();
+        T[] b = fb.get();
+
         while(i < a.length && j < b.length) {
             if(b[j].compareTo(a[i]) < 0) {
                 list[k] = b[j];
