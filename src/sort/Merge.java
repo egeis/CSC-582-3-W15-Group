@@ -61,5 +61,4 @@ public class Merge<T extends Comparable<T>> implements Callable<T[]> {
         
         return results.toArray( (T[]) Array.newInstance(results.getClass(), 0) );
     }
-  
 }
