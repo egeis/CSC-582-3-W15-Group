@@ -5,67 +5,58 @@
  */
 package sort;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
+import java.util.concurrent.Future;
 
 /**
  *
  * @author Richard
  */
 public class PartitionMerge {
-    public static ExecutorService executor;
-    private List<FutureTask<Integer[]>> future = new ArrayList();
-    private int threads;
+    public ExecutorService executor;
+    public CompletionService pool;
+    private final int threads;
     
     public PartitionMerge() {
         threads = Runtime.getRuntime().availableProcessors();
-        if(executor == null) executor = Executors.newCachedThreadPool();
+        executor = Executors.newCachedThreadPool();
+        pool = new ExecutorCompletionService(executor);
     }
     
     public Integer[] sort(Integer[] arr) {
         int partition_size = (int) Math.ceil(arr.length/threads);
         
-        
         for(int i = 0; i < threads; i++) {
-            FutureTask<Integer[]> ft = new FutureTask(new PartitionTask(arr, i*partition_size, Math.min(((i+1)*partition_size - 1),(arr.length - 1))));
-            future.add(ft);
-            executor.execute(ft);
+            pool.submit(new PartitionTask(arr, i*partition_size, Math.min(((i+1)*partition_size - 1),(arr.length - 1))));
         }
         
-        while(future.size() > 1) {
-            FutureTask<Integer[]> fa = future.remove(0);
-            FutureTask<Integer[]> fb = future.remove(0);
-            
-            Integer[] a;
-            Integer[] b;
-            
+        //Initalized to null Suppresses an Warrning.
+        Integer[] results = null;
+        Future<Integer[]> fb = null; 
+        
+        while(true) { 
+            Integer[] b = null;
+           
             try {
-                a = fa.get();
+                results = (Integer[]) pool.take().get();
+                fb = pool.poll();
+                if(fb == null) break;  //All Done!
                 b = fb.get();
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
+            } finally {
+                pool.submit(new MergeTask(results,b));
             }
-                        
-            FutureTask<Integer[]> ft = new FutureTask(new MergeTask(fa,fb));
-            future.add(ft);
-            executor.execute(ft);
         }
-        executor.shutdown();
-        FutureTask<Integer[]> ft = future.remove(0);
-                
-        try {
-            while(!ft.isDone()) {}
-            return ft.get();
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return null;
-        } 
+        
+        if (executor != null) { executor.shutdown(); }
+        return results;
     }
     
     public static void main(String[] args) {
@@ -78,11 +69,12 @@ public class PartitionMerge {
         }
 
         System.out.println(Arrays.toString(test));
+        PartitionMerge pm= new PartitionMerge();
         
         start = System.currentTimeMillis();
-        PartitionMerge pm= new PartitionMerge();
         test = pm.sort(test);
         end = System.currentTimeMillis();
+        
         System.out.println("[DEBUG] The algorithm took: " + (end - start) + " ms");
         System.out.println(Arrays.toString(test));
     }
