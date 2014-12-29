@@ -49,13 +49,6 @@ public class MergeSort<T extends Comparable<T>> implements Runnable {
     public void merge(T[] a, T[] b) {
         int i = 0, j = 0, k = 0;
         
-        /*
-        System.out.println("Merge: List.length="+list.length+", a.length"+a.length+",b.length="+b.length);
-        System.out.println(Arrays.toString(list));
-        System.out.println(Arrays.toString(a));
-        System.out.println(Arrays.toString(b));
-        */
-        
         while(i < a.length && j < b.length) {
             if(b[j].compareTo(a[i]) < 0) {
                 list[k] = b[j];
@@ -94,10 +87,10 @@ public class MergeSort<T extends Comparable<T>> implements Runnable {
      * 
      */
     public void show() {
-        for(int i = 0; i < list.length; i++) {
+        /*for(int i = 0; i < list.length; i++) {
             System.out.print(list[i].toString() +((i < list.length - 1)?",":""));
-        }
-        System.out.println();
+        }*/
+        System.out.println(Arrays.toString(list));
     }
     
     /**
@@ -106,7 +99,7 @@ public class MergeSort<T extends Comparable<T>> implements Runnable {
      */
     public static void main(String[] args) {        
         long start, end;
-        Integer[] test = new Integer[100000];
+        Integer[] test = new Integer[10000];
         Random rand = new Random();
         
         for(int i = 0; i < test.length; i++) {

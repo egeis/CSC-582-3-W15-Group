@@ -5,7 +5,6 @@
  */
 package sort;
 
-import com.sun.glass.ui.Application;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,54 +18,46 @@ import java.util.concurrent.FutureTask;
  *
  * @author Richard
  */
-public class ParallelMerge {
-    protected Integer[] values;
-    protected List<FutureTask<Integer[]>> list = new ArrayList();
+public class PartitionMerge {
     public static ExecutorService executor;
+    private List<FutureTask<Integer[]>> future = new ArrayList();
+    private int threads;
     
-    public ParallelMerge() {
+    public PartitionMerge() {
+        threads = Runtime.getRuntime().availableProcessors();
         if(executor == null) executor = Executors.newCachedThreadPool();
     }
     
-    public Integer[] merge(Integer[] values) {
-        this.values = values;
+    public Integer[] sort(Integer[] arr) {
+        int partition_size = (int) Math.ceil(arr.length/threads);
         
-        for(int i = 0; i < values.length; i=i+2) {            
-            FutureTask<Integer[]> ft = new FutureTask(new MergeTask(values[i], values[i+1]));
-            list.add(ft);
+        
+        for(int i = 0; i < threads; i++) {
+            FutureTask<Integer[]> ft = new FutureTask(new PartitionTask(arr, i*partition_size, Math.min(((i+1)*partition_size - 1),(arr.length - 1))));
+            future.add(ft);
             executor.execute(ft);
         }
         
-        if(values.length % 2 == 1) {
-            System.out.println("[DEBUG] Odd Values");
-            FutureTask<Integer[]> fa = list.remove(0);
+        while(future.size() > 1) {
+            FutureTask<Integer[]> fa = future.remove(0);
+            FutureTask<Integer[]> fb = future.remove(0);
+            
             Integer[] a;
+            Integer[] b;
             
             try {
                 a = fa.get();
+                b = fb.get();
             } catch (ExecutionException | InterruptedException e) {
-                System.out.println("[Error]:"+e.getCause());
                 e.printStackTrace();
-                return null;
             }
-            
-            FutureTask<Integer[]> ft = new FutureTask(new MergeTask(a, values[values.length - 1]));
-            list.add(ft);
-            executor.execute(ft);
-        }
-        
-        //System.out.println("[DEBUG] Starting with " + list.size() + " items.");
-        while(list.size() > 1) {
-            //System.out.println("[DEBUG] Looping with " + list.size() + " items.");
-            FutureTask<Integer[]> fa = list.remove(0);
-            FutureTask<Integer[]> fb = list.remove(0);
+                        
             FutureTask<Integer[]> ft = new FutureTask(new MergeTask(fa,fb));
-            list.add(ft);
+            future.add(ft);
             executor.execute(ft);
         }
         executor.shutdown();
-        //System.out.println("[DEBUG] Ending with " + list.size() + " items.");
-        FutureTask<Integer[]> ft = list.remove(0);
+        FutureTask<Integer[]> ft = future.remove(0);
                 
         try {
             while(!ft.isDone()) {}
@@ -74,12 +65,12 @@ public class ParallelMerge {
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
             return null;
-        }         
+        } 
     }
     
     public static void main(String[] args) {
         long start, end;
-        Integer[] test = new Integer[100000];
+        Integer[] test = new Integer[10000];
         Random rand = new Random();
                 
         for(int i = 0; i < test.length; i++) {
@@ -89,8 +80,8 @@ public class ParallelMerge {
         System.out.println(Arrays.toString(test));
         
         start = System.currentTimeMillis();
-        ParallelMerge pm= new ParallelMerge();
-        test = pm.merge(test);
+        PartitionMerge pm= new PartitionMerge();
+        test = pm.sort(test);
         end = System.currentTimeMillis();
         System.out.println("[DEBUG] The algorithm took: " + (end - start) + " ms");
         System.out.println(Arrays.toString(test));

@@ -33,10 +33,16 @@ public class MergeTask implements Callable<Integer[]> {
         first = true;
     }
     
-     public MergeTask(Integer[] a, Integer b) {
+    public MergeTask(Integer[] a, Integer b) {
         this.a = a;
         this.b = new Integer[1];
         this.b[0] = b;
+        first = true;
+    }
+    
+    public MergeTask(Integer[] a, Integer b[]) {
+        this.a = a;
+        this.b = b;
         first = true;
     }
     
@@ -48,7 +54,6 @@ public class MergeTask implements Callable<Integer[]> {
     @Override
     public Integer[] call() throws Exception {        
         int i = 0, j = 0,k = 0;
-        
         
         if(!first) {
             try {
