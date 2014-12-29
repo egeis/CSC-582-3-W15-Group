@@ -5,6 +5,7 @@
  */
 package sort;
 
+import com.sun.glass.ui.Application;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,34 +31,50 @@ public class ParallelMerge {
     public Integer[] merge(Integer[] values) {
         this.values = values;
         
-        for(int i = 0; i < values.length; i++) {
-            FutureTask<Integer[]> ft = new FutureTask(new MergeTask(values[i]));
+        for(int i = 0; i < values.length; i=i+2) {            
+            FutureTask<Integer[]> ft = new FutureTask(new MergeTask(values[i], values[i+1]));
+            list.add(ft);
+            executor.execute(ft);
+        }
+        
+        if(values.length % 2 == 1) {
+            System.out.println("[DEBUG] Odd Values");
+            FutureTask<Integer[]> fa = list.remove(0);
+            Integer[] a;
+            
+            try {
+                a = fa.get();
+            } catch (ExecutionException | InterruptedException e) {
+                System.out.println("[Error]:"+e.getCause());
+                e.printStackTrace();
+                return null;
+            }
+            
+            FutureTask<Integer[]> ft = new FutureTask(new MergeTask(a, values[values.length - 1]));
             list.add(ft);
             executor.execute(ft);
         }
         
         //System.out.println("[DEBUG] Starting with " + list.size() + " items.");
         while(list.size() > 1) {
+            //System.out.println("[DEBUG] Looping with " + list.size() + " items.");
             FutureTask<Integer[]> fa = list.remove(0);
             FutureTask<Integer[]> fb = list.remove(0);
-                        
             FutureTask<Integer[]> ft = new FutureTask(new MergeTask(fa,fb));
             list.add(ft);
             executor.execute(ft);
-            //System.out.println("[DEBUG] Looping with " + list.size() + " items.");
         }
         executor.shutdown();
-        
+        //System.out.println("[DEBUG] Ending with " + list.size() + " items.");
         FutureTask<Integer[]> ft = list.remove(0);
                 
         try {
+            while(!ft.isDone()) {}
             return ft.get();
         } catch (ExecutionException | InterruptedException e) {
-            System.out.println("[Error]:"+e.getCause());
             e.printStackTrace();
-        } 
-        
-        return null;
+            return null;
+        }         
     }
     
     public static void main(String[] args) {
