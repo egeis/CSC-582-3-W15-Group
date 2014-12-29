@@ -17,7 +17,7 @@ import java.util.concurrent.FutureTask;
  * @author Richard
  * @param <T>
  */
-public class Merge<T extends Comparable<T>> implements Callable<T[]> {
+public class MergeTask<T extends Comparable<T>> implements Callable<T[]> {
     
     private Class<T> tClass;
     
@@ -28,12 +28,12 @@ public class Merge<T extends Comparable<T>> implements Callable<T[]> {
     private List<T> results = new ArrayList<>(); 
     private boolean isDone = false;
     
-    public Merge(T values) {
+    public MergeTask(T values) {
         results.add(values);
         isDone = true;
     }
     
-    public Merge(FutureTask<T[]> fa, FutureTask<T[]> fb) {
+    public MergeTask(FutureTask<T[]> fa, FutureTask<T[]> fb) {
         this.fa = fa;
         this.fb = fb;
     }
@@ -41,13 +41,14 @@ public class Merge<T extends Comparable<T>> implements Callable<T[]> {
     @Override
     public T[] call() throws Exception {        
         int i = 0, j = 0;
-                 
+     
         if(!isDone) {
             try {
                 a = fa.get();
                 b = fb.get();
             } catch (ExecutionException e) {
                 System.out.println("[Error]:"+e.getCause());
+                e.printStackTrace();
                 System.out.println("[Status] Futures are done:"+fa.isDone()+" and "+fb.isDone());
             }
                         
