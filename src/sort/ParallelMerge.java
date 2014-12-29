@@ -18,50 +18,51 @@ import java.util.concurrent.FutureTask;
  *
  * @author Richard
  */
-public class ParallelMerge<T extends Comparable<T>> {
-    protected T[] values;
-    protected List<FutureTask<T[]>> list = new ArrayList<FutureTask<T[]>>();
+public class ParallelMerge {
+    protected Integer[] values;
+    protected List<FutureTask<Integer[]>> list = new ArrayList();
     public static ExecutorService executor;
     
     public ParallelMerge() {
         if(executor == null) executor = Executors.newCachedThreadPool();
     }
     
-    public T[] merge(T[] values) {
+    public Integer[] merge(Integer[] values) {
         this.values = values;
         
         for(int i = 0; i < values.length; i++) {
-            FutureTask<T[]> ft = new FutureTask(new MergeTask(values[i]));
+            FutureTask<Integer[]> ft = new FutureTask(new MergeTask(values[i]));
             list.add(ft);
-            executor.submit(list.get(list.size() - 1));
+            executor.execute(ft);
         }
         
-        System.out.println("[DEBUG] Starting with " + list.size() + " items.");
+        //System.out.println("[DEBUG] Starting with " + list.size() + " items.");
         while(list.size() > 1) {
-            FutureTask<T[]> fa = list.remove(0);
-            FutureTask<T[]> fb = list.remove(0);
+            FutureTask<Integer[]> fa = list.remove(0);
+            FutureTask<Integer[]> fb = list.remove(0);
                         
-            FutureTask<T[]> ft = new FutureTask(new MergeTask(fa,fb));
+            FutureTask<Integer[]> ft = new FutureTask(new MergeTask(fa,fb));
             list.add(ft);
-            executor.submit(list.get(list.size() - 1));
-            System.out.println("[DEBUG] Looping with " + list.size() + " items.");
+            executor.execute(ft);
+            //System.out.println("[DEBUG] Looping with " + list.size() + " items.");
         }
         executor.shutdown();
         
-        T[] result;
-        FutureTask<T[]> ft = list.remove(0);
+        FutureTask<Integer[]> ft = list.remove(0);
                 
         try {
-            result = ft.get();
-            return result;
+            return ft.get();
         } catch (ExecutionException | InterruptedException e) {
-            return null;
+            System.out.println("[Error]:"+e.getCause());
+            e.printStackTrace();
         } 
+        
+        return null;
     }
     
     public static void main(String[] args) {
         long start, end;
-        Integer[] test = new Integer[4];
+        Integer[] test = new Integer[100000];
         Random rand = new Random();
                 
         for(int i = 0; i < test.length; i++) {
@@ -71,7 +72,7 @@ public class ParallelMerge<T extends Comparable<T>> {
         System.out.println(Arrays.toString(test));
         
         start = System.currentTimeMillis();
-        ParallelMerge<Integer> pm= new ParallelMerge<Integer>();
+        ParallelMerge pm= new ParallelMerge();
         test = pm.merge(test);
         end = System.currentTimeMillis();
         System.out.println("[DEBUG] The algorithm took: " + (end - start) + " ms");

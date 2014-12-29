@@ -106,7 +106,7 @@ public class MergeSort<T extends Comparable<T>> implements Runnable {
      */
     public static void main(String[] args) {        
         long start, end;
-        Integer[] test = new Integer[10000];
+        Integer[] test = new Integer[100000];
         Random rand = new Random();
         
         for(int i = 0; i < test.length; i++) {
