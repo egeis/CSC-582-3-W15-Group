@@ -23,23 +23,35 @@ public class PartitionMerge {
     public CompletionService pool;
     private final int threads;
     
+    /**
+     * 
+     */
     public PartitionMerge() {
         threads = Runtime.getRuntime().availableProcessors();
         executor = Executors.newCachedThreadPool();
+        //executor = Executors.newFixedThreadPool(1);
         pool = new ExecutorCompletionService(executor);
     }
     
+    /**
+     * 
+     * @param arr
+     * @return 
+     */
     public Integer[] sort(Integer[] arr) {
         int partition_size = (int) Math.ceil(arr.length/threads);
         
+        //Create Parts
         for(int i = 0; i < threads; i++) {
-            pool.submit(new PartitionTask(arr, i*partition_size, Math.min(((i+1)*partition_size - 1),(arr.length - 1))));
+            Integer[] part = Arrays.copyOfRange(arr, i*partition_size, Math.min(((i+1)*partition_size - 1),(arr.length - 1)));
+            pool.submit(new PartitionTask(part));
         }
         
         //Initalized to null Suppresses an Warrning.
         Integer[] results = null;
         Future<Integer[]> fb = null; 
         
+        //Merge Parts
         while(true) { 
             Integer[] b = null;
            
@@ -55,10 +67,14 @@ public class PartitionMerge {
             }
         }
         
-        if (executor != null) { executor.shutdown(); }
+        executor.shutdown();
         return results;
     }
     
+    /**
+     * 
+     * @param args 
+     */
     public static void main(String[] args) {
         long start, end;
         Integer[] test = new Integer[10000];
