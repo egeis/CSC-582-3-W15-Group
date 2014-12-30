@@ -6,10 +6,8 @@
 package sort;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,7 +19,6 @@ import java.util.concurrent.FutureTask;
  */
 public class PartitionMerge {
     public ExecutorService executor;
-    public CompletionService pool;
     private final int threads;
     private final int partition_size;
     private List<FutureTask<Integer[]>> flist;
@@ -35,6 +32,7 @@ public class PartitionMerge {
     public PartitionMerge(Integer[] arr) {
         threads = Runtime.getRuntime().availableProcessors();
         executor = Executors.newCachedThreadPool();
+        //executor = Executors.newFixedThreadPool(threads);
         flist = new ArrayList();
         
         this.arr = arr;
@@ -46,9 +44,14 @@ public class PartitionMerge {
      * @return Integer[]
      */
     public Integer[] sort() {        
+        
         //Create Parts
-        for(int i = 0; i < threads; i++) {            
-            Integer[] part = Arrays.copyOfRange(arr, i*partition_size, Math.min(((i+1)*partition_size),(arr.length)));            
+        int size = arr.length;
+        
+        for(int i = 0; i < threads; i++) { 
+            Integer[] part = new Integer[ Math.min(partition_size,size) ]; 
+            System.arraycopy(arr, i*partition_size, part, 0, Math.min(partition_size, size));
+            size -= partition_size;
             FutureTask ft = new FutureTask(new PartitionTask(part));
             executor.submit(ft);
             flist.add(ft);
