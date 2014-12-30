@@ -5,7 +5,9 @@
  */
 package sort;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
@@ -13,6 +15,8 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -22,49 +26,70 @@ public class PartitionMerge {
     public ExecutorService executor;
     public CompletionService pool;
     private final int threads;
+    private final int partition_size;
+    private List<FutureTask<Integer[]>> flist;
+    
+    private final Integer[] arr;
     
     /**
      * 
      */
-    public PartitionMerge() {
+    public PartitionMerge(Integer[] arr) {
         threads = Runtime.getRuntime().availableProcessors();
         executor = Executors.newCachedThreadPool();
+        flist = new ArrayList();
         //executor = Executors.newFixedThreadPool(1);
-        pool = new ExecutorCompletionService(executor);
+        //pool = new ExecutorCompletionService(executor);
+        
+        this.arr = arr;
+        
+        partition_size = (int) Math.ceil(((1.0 * arr.length)/threads));
     }
     
     /**
-     * 
-     * @param arr
-     * @return 
+     * Initialize the MergeSort
+     * @return Integer[]
      */
-    public Integer[] sort(Integer[] arr) {
-        int partition_size = (int) Math.ceil(arr.length/threads);
-        
+    public Integer[] sort() {        
         //Create Parts
         for(int i = 0; i < threads; i++) {
+            //System.out.println("[Partition]"+i*partition_size+" "+Math.min(((i+1)*partition_size - 1),(arr.length - 1)));
             Integer[] part = Arrays.copyOfRange(arr, i*partition_size, Math.min(((i+1)*partition_size - 1),(arr.length - 1)));
-            pool.submit(new PartitionTask(part));
+            FutureTask ft = new FutureTask(new PartitionTask(part));
+            executor.submit(ft);
+            flist.add(ft);
         }
-        
-        //Initalized to null Suppresses an Warrning.
-        Integer[] results = null;
-        Future<Integer[]> fb = null; 
-        
+
         //Merge Parts
-        while(true) { 
+        while(flist.size() > 1) {            
+            Integer[] a = null;
             Integer[] b = null;
-           
+            
             try {
-                results = (Integer[]) pool.take().get();
-                fb = pool.poll();
-                if(fb == null) break;  //All Done!
-                b = fb.get();
+                a = flist.remove(0).get();
+                b = flist.remove(0).get();
+                //results = (Integer[]) pool.take().get();
+                //if(run == 1) break;
+                //b = (Integer[]) pool.take().get();
+                System.out.println("[Merge Parts]" + a.length+" | "+b.length);
+                //fb = pool.poll(threads, TimeUnit.DAYS);
+                //if(fb == null) break;  //All Done!
+                //b = fb.get();
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
             } finally {
-                pool.submit(new MergeTask(results,b));
+                //pool.submit(new MergeTask(a,b));
+                FutureTask ft = new FutureTask(new MergeTask(a,b));
+                executor.submit(ft);
+                flist.add(ft);
             }
+        }
+        
+        Integer[] results = null;
+        try {
+            results = flist.remove(0).get();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
         }
         
         executor.shutdown();
@@ -85,13 +110,14 @@ public class PartitionMerge {
         }
 
         System.out.println(Arrays.toString(test));
-        PartitionMerge pm= new PartitionMerge();
+        PartitionMerge pm= new PartitionMerge(test);
         
         start = System.currentTimeMillis();
-        test = pm.sort(test);
+        test = pm.sort();
         end = System.currentTimeMillis();
         
         System.out.println("[DEBUG] The algorithm took: " + (end - start) + " ms");
+        System.out.println("[Debug] Array Length "+test.length);
         System.out.println(Arrays.toString(test));
     }
 }

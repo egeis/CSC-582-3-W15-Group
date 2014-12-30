@@ -16,9 +16,7 @@ public class PartitionTask implements Callable<Integer[]> {
 
     /**
      * 
-     * @param a
-     * @param beg
-     * @param end 
+     * @param part
      */
     public PartitionTask(Integer[] part) {
         this.part = part;

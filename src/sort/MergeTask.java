@@ -40,7 +40,7 @@ public class MergeTask implements Callable<Integer[]> {
     public Integer[] call() throws Exception {        
         int i = 0, j = 0,k = 0;
                 
-        results = new Integer[a.length+b.length]; 
+        results = new Integer[(a.length+b.length)]; 
         
         while(i < a.length && j < b.length) {
             if(b[j].compareTo(a[i]) < 0) {
