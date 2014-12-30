@@ -6,7 +6,6 @@
 package sort;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
 
 /**
  *
@@ -39,7 +38,6 @@ public class MergeTask implements Callable<Integer[]> {
     @Override
     public Integer[] call() throws Exception {        
         int i = 0, j = 0,k = 0;
-                
         results = new Integer[(a.length+b.length)]; 
         
         while(i < a.length && j < b.length) {
