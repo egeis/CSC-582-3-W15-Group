@@ -30,7 +30,7 @@ public class PartitionTask implements Callable<Integer[]> {
     @Override
     public Integer[] call() throws Exception {
         int N = part.length;
-        
+                
         for (int n = 1; n < N; n = n+n) {
             for (int i = 0; i < N-n; i += n+n) {
                 int lo = i;
@@ -42,7 +42,7 @@ public class PartitionTask implements Callable<Integer[]> {
 
         return part;
     }
-
+    
     /**
      * 
      * @param lo

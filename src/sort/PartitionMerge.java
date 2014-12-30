@@ -11,12 +11,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -33,16 +30,14 @@ public class PartitionMerge {
     
     /**
      * 
+     * @param arr Integer[]
      */
     public PartitionMerge(Integer[] arr) {
         threads = Runtime.getRuntime().availableProcessors();
         executor = Executors.newCachedThreadPool();
         flist = new ArrayList();
-        //executor = Executors.newFixedThreadPool(1);
-        //pool = new ExecutorCompletionService(executor);
         
         this.arr = arr;
-        
         partition_size = (int) Math.ceil(((1.0 * arr.length)/threads));
     }
     
@@ -52,9 +47,8 @@ public class PartitionMerge {
      */
     public Integer[] sort() {        
         //Create Parts
-        for(int i = 0; i < threads; i++) {
-            //System.out.println("[Partition]"+i*partition_size+" "+Math.min(((i+1)*partition_size - 1),(arr.length - 1)));
-            Integer[] part = Arrays.copyOfRange(arr, i*partition_size, Math.min(((i+1)*partition_size - 1),(arr.length - 1)));
+        for(int i = 0; i < threads; i++) {            
+            Integer[] part = Arrays.copyOfRange(arr, i*partition_size, Math.min(((i+1)*partition_size),(arr.length)));            
             FutureTask ft = new FutureTask(new PartitionTask(part));
             executor.submit(ft);
             flist.add(ft);
@@ -68,17 +62,9 @@ public class PartitionMerge {
             try {
                 a = flist.remove(0).get();
                 b = flist.remove(0).get();
-                //results = (Integer[]) pool.take().get();
-                //if(run == 1) break;
-                //b = (Integer[]) pool.take().get();
-                System.out.println("[Merge Parts]" + a.length+" | "+b.length);
-                //fb = pool.poll(threads, TimeUnit.DAYS);
-                //if(fb == null) break;  //All Done!
-                //b = fb.get();
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
             } finally {
-                //pool.submit(new MergeTask(a,b));
                 FutureTask ft = new FutureTask(new MergeTask(a,b));
                 executor.submit(ft);
                 flist.add(ft);
@@ -96,28 +82,35 @@ public class PartitionMerge {
         return results;
     }
     
+    private static boolean isSorted(Integer[] a) {
+        for (int i = 1; i < a.length; i++)
+            if (a[i].compareTo(a[i-1]) < 0) return false;
+        return true;
+    }
+    
     /**
      * 
      * @param args 
      */
     public static void main(String[] args) {
         long start, end;
-        Integer[] test = new Integer[10000];
+        Integer[] test = new Integer[100000];
         Random rand = new Random();
                 
         for(int i = 0; i < test.length; i++) {
             test[i] = (int) (rand.nextDouble() * 10);
         }
 
-        System.out.println(Arrays.toString(test));
+        //System.out.println(Arrays.toString(test));
         PartitionMerge pm= new PartitionMerge(test);
         
         start = System.currentTimeMillis();
         test = pm.sort();
         end = System.currentTimeMillis();
         
-        System.out.println("[DEBUG] The algorithm took: " + (end - start) + " ms");
-        System.out.println("[Debug] Array Length "+test.length);
-        System.out.println(Arrays.toString(test));
+        //System.out.println(Arrays.toString(test));
+        System.out.println("[Results] The algorithm took: " + (end - start) + " ms");
+        System.out.println("[Results] Array Length "+test.length);
+        System.out.println("[Results] is sorted? "+isSorted(test));
     }
 }
