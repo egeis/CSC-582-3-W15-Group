@@ -6,15 +6,15 @@
 package sort;
 
 import java.util.ArrayList;
-//import java.util.Arrays;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-//import java.util.concurrent.CompletionService;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
-//import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-//import java.util.concurrent.Future;
+import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 
 /**
@@ -23,11 +23,11 @@ import java.util.concurrent.FutureTask;
  */
 public class PartitionMerge {
     public ExecutorService executor;
-    //public CompletionService<Integer[]> cs;
+    public CompletionService<Integer[]> cs;
     private final int threads;
     private final int partition_size;
-    private List<FutureTask<Integer[]>> flist;
-    //private List<Future<Integer[]>> flist;
+    //private List<FutureTask<Integer[]>> flist;
+    private List<Future<Integer[]>> flist;
     private final Integer[] arr;
     
     /**
@@ -38,7 +38,7 @@ public class PartitionMerge {
         threads = Runtime.getRuntime().availableProcessors();
         executor = Executors.newCachedThreadPool();
         flist = new ArrayList();
-        //cs = new ExecutorCompletionService<Integer[]>(executor);
+        cs = new ExecutorCompletionService<Integer[]>(executor);
         
         this.arr = arr;
         partition_size = (int) Math.ceil(((1.0 * arr.length)/threads));
@@ -58,12 +58,12 @@ public class PartitionMerge {
             System.arraycopy(arr, i*partition_size, part, 0, Math.min(partition_size, size));
             size -= partition_size;
             
-            //Future f = cs.submit(new PartitionTask(part));
-            //flist.add(f);
+            Future f = cs.submit(new PartitionTask(part));
+            flist.add(f);
             
-            FutureTask ft = new FutureTask(new PartitionTask(part));
-            executor.submit(ft);
-            flist.add(ft);
+            //FutureTask ft = new FutureTask(new PartitionTask(part));
+            //executor.submit(ft);
+            //flist.add(ft);
         }
 
         //Merge Parts
@@ -72,34 +72,34 @@ public class PartitionMerge {
             Integer[] b = null;
             
             try {
-                /*Future fa = cs.take();
+                Future fa = cs.take();
                 Future fb = cs.take();
                     
                 a = (Integer[]) fa.get();
                 b = (Integer[]) fb.get();
                 
                 flist.remove(fa);
-                flist.remove(fb);*/
+                flist.remove(fb);
                 
-                a = flist.remove(0).get();
-                b = flist.remove(0).get();
+                //a = flist.remove(0).get();
+                //b = flist.remove(0).get();
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
             } finally {
-                /*Future f = cs.submit(new MergeTask(a,b));
-                flist.add(f);*/
+                Future f = cs.submit(new MergeTask(a,b));
+                flist.add(f);
                 
-                FutureTask ft = new FutureTask(new MergeTask(a,b));
-                executor.submit(ft);
-                flist.add(ft);
+                //FutureTask ft = new FutureTask(new MergeTask(a,b));
+                //executor.submit(ft);
+                //flist.add(ft);
             }
         }
         
         //Final Array
         Integer[] results = null;
         try {
-            //results =  cs.take().get();
-            results = flist.remove(0).get();
+            results =  cs.take().get();
+            //results = flist.remove(0).get();
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -120,7 +120,7 @@ public class PartitionMerge {
      */
     public static void main(String[] args) {
         long start, end;
-        Integer[] test = new Integer[100];
+        Integer[] test = new Integer[100000];
         Random rand = new Random();
                 
         for(int i = 0; i < test.length; i++) {
