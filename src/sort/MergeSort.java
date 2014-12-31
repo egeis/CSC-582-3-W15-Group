@@ -1,6 +1,8 @@
 package sort;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -8,43 +10,32 @@ import java.util.Random;
  * @author Richard Coan
  * @param <T>
  */
-public class MergeSort implements Runnable {
+public class MergeSort<T> implements Runnable {
     
-    private Integer[] list;
-    private Integer[] a;
-    private Integer[] b;
-    private boolean isSorted = false;
-    
+    protected List list;
+    protected Comparator<T> compare;
+   
     /**
      * 
      * @param list 
      */
-    public MergeSort(Integer[] list) 
+    public MergeSort(List<T> list, Comparator<T> compare) 
     {
+        this.compare = compare;
         this.list = list;
-    }
-    
-    public MergeSort(Integer[] a, Integer[] b) {
-        this.a = a;
-        this.b = b;
-        this.isSorted = true;
     }
 
     @Override
     public void run() {
-        if(!isSorted) {
-            if(list.length < 2) return;        
+        if(list.size() < 2) return;        
 
-            MergeSort msa = new MergeSort( Arrays.copyOfRange(list, 0, (list.length/2)) );
-            MergeSort msb = new MergeSort( Arrays.copyOfRange(list, (list.length/2), list.length) );
+        MergeSort msa = new MergeSort( list.subList(0, list.size()/2), compare );
+        MergeSort msb = new MergeSort( list.subList(list.size()/2, list.size()), compare );
 
-            msa.run();        
-            msb.run();
+        msa.run();        
+        msb.run();
 
-            merge(msa.get(),msb.get());
-        } else {
-            merge(a,b);
-        }
+        merge(msa.get(), msb.get());
     }    
     
     /**
@@ -52,49 +43,45 @@ public class MergeSort implements Runnable {
      * @param a
      * @param b 
      */
-    public void merge(Integer[] a, Integer[] b) {
+    protected void merge(List<T> a, List<T> b) {
         int i = 0, j = 0, k = 0;
-        list = new Integer[(a.length+b.length)];
         
-        while(i < a.length && j < b.length) {
-            if(b[j].compareTo(a[i]) < 0) {
-                list[k] = b[j];
-                j++;
-            } else {
-                list[k] = a[i];
+         while(i < a.size() && j < b.size()){
+            if(compare.compare(a.get(i), b.get(j)) < 0){
+                list.set(k, a.get(i));
                 i++;
+            } else {
+                list.set(k, b.get(j));
+                j++;
             }
-            
             k++;
         }
         
-        while(i < a.length) {
-            list[k] = a[i];
-            k++;
+        while(i < a.size()) {
+            list.set(k, a.get(i));
             i++;
-        }
-        
-        while(j < b.length) {
-            list[k] = b[j];
             k++;
-            j++;
         }
         
+        while(j < b.size()) {
+            list.set(k, b.get(j));
+            j++;
+            k++;
+        }
     }
 
     /**
      * 
      * @return 
      */
-    public Integer[] get() {
+    public List<T> get() {
         return list;
     }
     
-    /**
-     * 
-     */
-    public void show() {
-        System.out.println(Arrays.toString(list));
+    protected boolean isSorted(List<T> a, Comparator<T> compare) {
+        for (int i = 1; i < a.size(); i++)
+            if(compare.compare(a.get(i), a.get(i - 1)) < 0) return false;
+        return true;
     }
     
     /**
@@ -103,21 +90,36 @@ public class MergeSort implements Runnable {
      */
     public static void main(String[] args) {        
         long start, end;
-        Integer[] test = new Integer[100];
+        final int length = 1000000;
+        List<Integer> test = new ArrayList();
         Random rand = new Random();
         
-        for(int i = 0; i < test.length; i++) {
-            test[i] = (int) (rand.nextDouble() * 10);
+        Comparator<Integer> compare = new Comparator<Integer>() {
+            @Override
+            public int compare(Integer a, Integer b){
+               return a.compareTo(b);
+            }
+            
+            @Override
+            public boolean equals(Object a){
+               return this == a;
+            }
+           };
+        
+        //Create the Random Array.
+        for(int i = 0; i < length; i++) {
+            test.add( (int) (rand.nextDouble() * 10) );
         }
         
-        MergeSort ms = new MergeSort(test);
+        MergeSort ms = new MergeSort(test, compare);
         
-        ms.show();
+        System.out.println("[Starting] Is Sorted? "+ ms.isSorted(test, compare));
+        System.out.println("[Starting] Array Size:"+test.size());
         start = System.currentTimeMillis();
         ms.run();
         end = System.currentTimeMillis();
-        ms.show();
-                
-        System.out.println("The algorithm took: " + (end - start) + " ms");
+        System.out.println("[Completed] The algorithm took: " + (end - start) + " ms");
+        System.out.println("[Completed] Is Sorted? "+ ms.isSorted(test, compare));
+        System.out.println("[Completed] Array Size:"+test.size());        
     }
 }
