@@ -1,8 +1,7 @@
 [nN]bproject
-[bB]uild
-[dD]ist
 [lL]ibrary
 [tT]est
+[cC]lasses
 
 *.class
 
@@ -10,7 +9,6 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
 *.war
 *.ear
 *.xml
