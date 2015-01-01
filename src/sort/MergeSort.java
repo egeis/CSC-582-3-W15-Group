@@ -1,30 +1,26 @@
 package sort;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 /**
  * Serial Merge Sorts.
  * @author Richard Coan
- * @param <T> generic Type T.
  */
-public class MergeSort<T> implements Runnable
+public class MergeSort implements Runnable
 {
     //Global Protected Varibles
-    protected List list;
-    protected Comparator<T> compare;
+    protected Integer[] source;
    
     /**
      * Initialize Merge Sort.
-     * @param list the source array.
-     * @param compare a comparator.
+     * @param source the source array.
      */
-    public MergeSort(List<T> list, Comparator<T> compare)
+    public MergeSort(Integer[] source)
     {
-        this.compare = compare;
-        this.list = list;
+        this.source = source;
     }
 
     /**
@@ -33,11 +29,11 @@ public class MergeSort<T> implements Runnable
     @Override
     public void run() 
     {
-        if(list.size() < 2) return; //Recurssion End.        
+        if(source.length < 2) return; //Recurssion End.        
 
         //Divides the Array into two Sub Arrays to Merge Sort.
-        MergeSort msa = new MergeSort( list.subList(0, list.size()/2), compare );
-        MergeSort msb = new MergeSort( list.subList(list.size()/2, list.size()), compare );
+        MergeSort msa = new MergeSort( Arrays.copyOfRange(source, 0, source.length/2) );
+        MergeSort msb = new MergeSort( Arrays.copyOfRange(source, source.length/2, source.length));
 
         //Runs the Sub Arrays Merge Sort.
         msa.run();        
@@ -52,51 +48,86 @@ public class MergeSort<T> implements Runnable
      * @param a a sub ArrayList of the <em>source</em> ArrayList.
      * @param b a sub ArrayList of the <em>source</em> ArrayList.
      */
-    protected void merge(List<T> a, List<T> b)
+    protected void merge(Integer[] a, Integer[] b)
     {
-        int i = 0, j = 0, k = 0;
         
-         while(i < a.size() && j < b.size()){
-            if(compare.compare(a.get(i), b.get(j)) < 0){
-                list.set(k, a.get(i));
-                i++;
-            } else {
-                list.set(k, b.get(j));
-                j++;
+        // copy to aux[]
+        for (int k = lo; k <= hi; k++) {
+            aux[k] = a[k]; 
+        }
+
+        // merge back to a[]
+        int i = lo, j = mid+1;
+        for (int k = lo; k <= hi; k++) {
+            if      (i > mid)              a[k] = aux[j++];  // this copying is unneccessary
+            else if (j > hi)               a[k] = aux[i++];
+            else if (less(aux[j], aux[i])) a[k] = aux[j++];
+            else                           a[k] = aux[i++];
+        }
+        
+        /*int i = 0, j = 0, k = 0;
+        
+        while(i < a.length && j < b.length){
+            if(a[i].compareTo(b[j]) < 0){
+                source[k] = a[i];
+                ++k;
+                ++i;
+            }else{
+                source[k] = b[j];
+                ++k;
+                ++j;
             }
-            k++;
         }
-        while(i < a.size()) {
-            list.set(k, a.get(i));
-            i++;
-            k++;
+        
+        while(i < a.length){
+            source[k] = a[i];
+            ++k;
+            ++i;
         }
-        while(j < b.size()) {
-            list.set(k, b.get(j));
-            j++;
-            k++;
-        }
+        
+        while(j < b.length){
+            source[k] = b[j];
+            ++k;
+            ++j;
+        }*/
     }
 
     /**
      * Retrieves the result.
      * @return the sorted <em>source</em> ArrayList.
      */
-    public List<T> get()
+    public Integer[] get()
     {
-        return list;
+        return source;
     }
     
     /**
+     * Prints out the frequency of each element in the source list.
+     * @return Map with a count of each value in source using value as a key.
+     */
+    public Map<Integer, Integer> getFrequency() {
+        Map<Integer, Integer> freq = new HashMap<Integer, Integer>();
+        
+        for(int i = 0; i < source.length; i++) {
+            if(freq.containsKey(source[i])) {
+                freq.put(source[i], freq.get(source[i]) + 1);
+            } else {
+                freq.put(source[i], 1);
+            }
+        }
+        
+        return freq;
+    }
+    
+    
+    /**
      * Checks if an ArrayList is sorted.
-     * @param a the source array
-     * @param compare a comparator.
      * @return True if the list is sorted.
      */
-    protected boolean isSorted(List<T> a, Comparator<T> compare)
+    protected boolean isSorted()
     {
-        for (int i = 1; i < a.size(); i++)
-            if(compare.compare(a.get(i), a.get(i - 1)) < 0) return false;
+        for (int i = 1; i < source.length; i++)
+            if(source[i].compareTo(source[i-1]) < 0) return false;
         return true;
     }
     
@@ -108,40 +139,39 @@ public class MergeSort<T> implements Runnable
     {        
         //Initialize Local Varibles and Classes.
         long start, end;
-        final int length = 1000000;
-        List<Integer> test = new ArrayList();
+        final int length = 10000000;
+        Integer[] test = new Integer[length];
         Random rand = new Random();
-        
-        Comparator<Integer> compare = new Comparator<Integer>() {
-            @Override
-            public int compare(Integer a, Integer b){
-               return a.compareTo(b);
-            }
-            
-            @Override
-            public boolean equals(Object a){
-               return this == a;
-            }
-           };
+        Map<Integer, Integer> freq_start;
+        Map<Integer, Integer> freq_end;
         
         //Create the Random Array.
         for(int i = 0; i < length; i++) {
-            test.add( (int) (rand.nextDouble() * 10) );
+            test[i] = Math.abs(rand.nextInt());
         }
         
         //Initialze Merge Sort.
-        MergeSort ms = new MergeSort(test, compare);
+        MergeSort ms = new MergeSort(test);
         
         //Start Running Merge Sort.
-        System.out.println("[Starting] Is Sorted? "+ ms.isSorted(test, compare));
-        System.out.println("[Starting] Array Size:"+test.size());
+        System.out.println("[Starting] Is Sorted? "+ ms.isSorted());
+        System.out.println("[Starting] Array Size:"+test.length);
         
+        freq_start = ms.getFrequency();
+        System.out.println("[Starting] Frequency: "+freq_start.toString());
+
+        System.out.println("Running Sort");
         start = System.currentTimeMillis(); //Start Time
         ms.run();
         end = System.currentTimeMillis();   //End Time
+        System.out.println("Done!");
         
+        freq_end = ms.getFrequency();
+        System.out.println("[Completed] Frequency: "+freq_end.toString());
+        
+        System.out.println("[Completed] Frequency Match: "+((freq_start.equals(freq_end))?true:false));
         System.out.println("[Completed] The algorithm took: " + (end - start) + " ms.");
-        System.out.println("[Completed] Is Sorted? "+ ms.isSorted(test, compare));
-        System.out.println("[Completed] Array Size:"+test.size());        
+        System.out.println("[Completed] Is Sorted? "+ ms.isSorted());
+        System.out.println("[Completed] Array Size:"+test.length);        
     }
 }
