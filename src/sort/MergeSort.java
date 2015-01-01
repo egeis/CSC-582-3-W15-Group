@@ -133,7 +133,10 @@ public class MergeSort implements Runnable
     protected boolean isSorted()
     {
         for (int i = 1; i < source.length; i++)
-            if(source[i].compareTo(source[i-1]) < 0) return false;
+            if(source[i].compareTo(source[i-1]) < 0) {
+                System.out.print("Error near Index "+i);
+                return false;
+            }
         return true;
     }
     
