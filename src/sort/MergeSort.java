@@ -134,7 +134,7 @@ public class MergeSort implements Runnable
     {
         for (int i = 1; i < source.length; i++)
             if(source[i].compareTo(source[i-1]) < 0) {
-                System.out.print("Error near Index "+i);
+                System.out.println("Error near Index "+i);
                 return false;
             }
         return true;

@@ -48,7 +48,7 @@ public class InsertionSort {
         System.out.println(Arrays.toString(test));
         sort(test, 0 , 4);
         
-        sort(test, 5 , 4);
+        sort(test, 5 , 6);
         System.out.println(Arrays.toString(test));
     }
 }

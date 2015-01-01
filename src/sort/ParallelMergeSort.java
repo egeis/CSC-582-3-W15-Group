@@ -52,7 +52,7 @@ public class ParallelMergeSort extends MergeSort
     @Override
     public void run()
     {
-        if(end <= start) return;    //Recursive Ending
+        if(end <= start || end - start < 2) return;    //Recursive Ending
         int mid = start + (end - start) / 2;
         
         //System.out.println("INFO: Start:"+start+" End:"+end);
@@ -85,8 +85,6 @@ public class ParallelMergeSort extends MergeSort
                 //Runs the Sub Arrays Merge Sort as prompted by an Exception.
                 pmsa.run();
                 pmsb.run();
-                
-                merge(source, start, mid, end); 
             }
         }
         else
@@ -95,10 +93,10 @@ public class ParallelMergeSort extends MergeSort
             ParallelMergeSort pmsb = new ParallelMergeSort(source, depth+1, mid+1, end);
      
             pmsa.run();
-            pmsb.run(); 
-            
-            merge(source, start, mid, end); 
+            pmsb.run();            
         }
+        
+        merge(source, start, mid, end); 
     }
     
     /**
@@ -123,7 +121,7 @@ public class ParallelMergeSort extends MergeSort
         
         //Initialze Parallel Merge Sort.
         ParallelMergeSort pms = new ParallelMergeSort(test);
-        MAX_SIZE = 4;
+        MAX_SIZE = 2;
         freq_start = pms.getFrequency();
         
         System.out.println("[Starting] Is Sorted? "+ pms.isSorted());
