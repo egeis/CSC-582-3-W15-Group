@@ -1,7 +1,11 @@
 package sort;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+import static sort.MergeSort.ANSI_RED;
+import static sort.MergeSort.ANSI_RESET;
 
 /**
  *
@@ -17,7 +21,7 @@ public class InsertionSort {
      */
     public static void sort(Comparable[] a, int start, int end) {
         
-        for (int i = start+1; i <= end; i++) {
+        for (int i = start+1; i < (end + 1); i++) {
             for (int j = i; j > 0; j--) {
                 if (a[j-1].compareTo(a[j]) > 0) {
                     exch(a, j-1, j);
@@ -27,6 +31,38 @@ public class InsertionSort {
         }
     }
 
+        /**
+     * Prints out the frequency of each element in the source list.
+     * @return Map with a count of each value in source using value as a key.
+     */
+    public static Map<Comparable, Integer> getFrequency(Comparable[] source) {
+        Map<Comparable, Integer> freq = new HashMap<Comparable, Integer>();
+        
+        for(int i = 0; i < source.length; i++) {
+            if(freq.containsKey(source[i])) {
+                freq.put(source[i], freq.get(source[i]) + 1);
+            } else {
+                freq.put(source[i], 1);
+            }
+        }
+        
+        return freq;
+    }
+    
+    /**
+     * Checks if an ArrayList is sorted.
+     * @return True if the list is sorted.
+     */
+    protected static boolean isSorted(Comparable[] source)
+    {
+        for (int i = 1; i < source.length; i++)
+            if(source[i].compareTo(source[i-1]) < 0) {
+                System.out.println("Error near Index "+i);
+                return false;
+            }
+        return true;
+    }
+    
     // exchange a[i] and a[j]
     private static void exch(Comparable[] a, int i, int j) {
         Comparable swap = a[i];
@@ -37,18 +73,22 @@ public class InsertionSort {
     // read in a sequence of words from standard input and print
     // them out in sorted order
     public static void main(String[] args) {
-        final int length = 10;
+        final int length = 100;
         Integer[] test = new Integer[length];
         Random rand = new Random();
-        
+        Map<Comparable, Integer> freq_start;
+        Map<Comparable, Integer> freq_end;
+                
         for(int i = 0; i < length; i++) {
             test[i] = Math.abs(rand.nextInt());
         }
         
-        System.out.println(Arrays.toString(test));
-        sort(test, 0 , 4);
+        freq_start = getFrequency(test);
+        sort(test, 0 , 99);
+        freq_end = getFrequency(test);
         
-        sort(test, 5 , 6);
-        System.out.println(Arrays.toString(test));
+        System.out.println("[Completed] Frequency Match: "+ANSI_RED+((freq_start.equals(freq_end))?true:false)+ANSI_RESET);
+        System.out.println("[Completed] Is Sorted? "+ANSI_RED+isSorted(test)+ANSI_RESET);
+        freq_start = getFrequency(test);
     }
 }
