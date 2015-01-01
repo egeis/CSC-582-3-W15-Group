@@ -1,8 +1,6 @@
 package sort;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -13,47 +11,34 @@ import java.util.concurrent.Future;
  * Parallel Merge Sort
  * @author Richard Coan
  */
-public class ParallelMergeSort<T> extends MergeSort<T>
+public class ParallelMergeSort extends MergeSort
 {
     //Global Private Varibles
     private static ExecutorService executor;
     private int depth = 0;
-    private int max_depth = 0;
+    private static int MAX_SIZE = 0;
       
     /**
      * Initialize Parallel Merge Sort.
-     * @param list the source array.
-     * @param compare a comparator.
-     * @param max_depth [Optional] the maximum depth before Insertion Sort is used.
+     * @param source the source array.
      */
-    public ParallelMergeSort(List<T> list, Comparator<T> compare, int max_depth) 
+    public ParallelMergeSort(Comparable[] source) 
     {
-        this(list, compare);
-        this.max_depth = max_depth;
+        super(source);
+        if(executor == null) executor = Executors.newCachedThreadPool();
     }
     
     /**
      * Initialize Parallel Merge Sort.
-     * @param list the source array.
-     * @param compare a comparator.
-     * @param depth [Optional] the current depth.
-     * @param max_depth [Optional] the maximum depth before Insertion Sort is used.
+     * @param source the source array.
+     * @param depth the current depth.
+     * @param start the starting index.
+     * @param end the last index.
      */
-    public ParallelMergeSort(List<T> list, Comparator<T> compare, int depth, int max_depth)
+    public ParallelMergeSort(Comparable[] source, int depth, int start, int end)
     {
-        this(list, compare);
+        super(source, start, end);
         this.depth = depth;
-        this.max_depth = max_depth;
-    }
-    
-    /**
-     * Initialize Parallel Merge Sort.
-     * @param list the source array.
-     * @param compare a comparator.
-     */
-    public ParallelMergeSort(List<T> list, Comparator<T> compare)
-    {
-        super(list, compare);
         if(executor == null) executor = Executors.newCachedThreadPool();
     }
 
@@ -63,19 +48,19 @@ public class ParallelMergeSort<T> extends MergeSort<T>
     @Override
     public void run()
     {
-        if(list.size() < 2) return; //Recurssion End.   
-                
-        //Dont over do the number of threads, limit parallel to upper parts of recussion.
-        if(depth < 2)
+        if(end <= start) return;
+        int mid = start + (end - start) / 2;
+        
+        if(end - start <= MAX_SIZE && MAX_SIZE != 0) {
+            //Insertion Sort
+        }        
+        else if(depth < 2)
         {
-            //Divides the Array into two Sub Arrays to Merge Sort.
-            ParallelMergeSort<T> pmsa = new ParallelMergeSort( list.subList(0, list.size()/2), compare, (depth+1), max_depth );
-            ParallelMergeSort<T> pmsb = new ParallelMergeSort( list.subList(list.size()/2, list.size()), compare, (depth+1), max_depth );
-
-            //Retrieves future varibles from the submitted runnable.
+            ParallelMergeSort pmsa = new ParallelMergeSort(source, depth+1, start, mid);
+            ParallelMergeSort pmsb = new ParallelMergeSort(source, depth+1, mid+1, end);
+            
             Future<?> fa = executor.submit(pmsa);
             Future<?> fb = executor.submit(pmsb);
-
             try
             {
                 //Retrieves the Future Completion (unhandled) and waits if necessary.
@@ -89,27 +74,19 @@ public class ParallelMergeSort<T> extends MergeSort<T>
                 
                 //Runs the Sub Arrays Merge Sort as prompted by an Exception.
                 pmsa.run();
-                pmsb.run();
-            }
-
-            //Merge Sorts the Results.
-            merge(pmsa.get(), pmsb.get());
-        } else {
-            if(depth >= max_depth && max_depth != 0) {
-                //Do some other sort like insertion.
-            } else {
-                //Divides the Array into two Sub Arrays to Merge Sort.
-                ParallelMergeSort<T> pmsa = new ParallelMergeSort( list.subList(0, list.size()/2), compare, (depth+1), max_depth );
-                ParallelMergeSort<T> pmsb = new ParallelMergeSort( list.subList(list.size()/2, list.size()), compare, (depth+1), max_depth );
-
-                //Runs the Sub Arrays Merge Sort.
-                pmsa.run();
-                pmsb.run();
-                
-                //Merge Sorts the Results.
-                merge(pmsa.get(), pmsb.get());
+                pmsb.run();                
             }
         }
+        else
+        {
+            ParallelMergeSort pmsa = new ParallelMergeSort(source, depth+1, start, mid);
+            ParallelMergeSort pmsb = new ParallelMergeSort(source, depth+1, mid+1, end);
+     
+            pmsa.run();
+            pmsb.run(); 
+        }
+        
+        merge(source, start, mid, end);
     }
     
     /**
@@ -121,40 +98,35 @@ public class ParallelMergeSort<T> extends MergeSort<T>
         //Initialize Local Varibles and Classes.
         long start, end;
         final int length = 1000000;
-        List<Integer> test = new ArrayList();
+        Integer[] test = new Integer[length];
         Random rand = new Random();
         
-        Comparator<Integer> compare = new Comparator<Integer>() {
-            @Override
-            public int compare(Integer a, Integer b){
-               return a.compareTo(b);
-            }
-            
-            @Override
-            public boolean equals(Object a){
-               return this == a;
-            }
-           };
+        Map<Comparable, Integer> freq_start;
+        Map<Comparable, Integer> freq_end;
         
-        //Create the Random Array.
+         //Create the Random Array.
         for(int i = 0; i < length; i++) {
-            test.add( (int) (rand.nextDouble() * 10) );
+            test[i] = Math.abs(rand.nextInt());
         }
         
         //Initialze Parallel Merge Sort.
-        ParallelMergeSort pms = new ParallelMergeSort(test, compare);
+        ParallelMergeSort pms = new ParallelMergeSort(test);
+        freq_start = pms.getFrequency();
+        
+        System.out.println("[Starting] Is Sorted? "+ pms.isSorted());
+        System.out.println("[Starting] Frequency: "+freq_start.toString());
         
         //Start Running Merge Sort.
-        System.out.println("[Starting] Is Sorted? "+ pms.isSorted(test, compare));
-        System.out.println("[Starting] Array Size:"+test.size());
-        
+        System.out.print(ANSI_BLUE+"Starting Sort..."+ANSI_RESET);
         start = System.currentTimeMillis(); //Start Time
         pms.run();
         end = System.currentTimeMillis();   //End Time
+        freq_end = pms.getFrequency();
+        System.out.println(ANSI_BLUE+"Done!"+ANSI_RESET);
         
-        System.out.println("[Completed] The algorithm took: " + (end - start) + " ms");
-        System.out.println("[Completed] Is Sorted? "+ pms.isSorted(test, compare));
-        System.out.println("[Completed] Array Size:"+test.size());
+        System.out.println("[Completed] The algorithm took: " + ANSI_RED + (end - start) + ANSI_RESET  +" ms");
+        System.out.println("[Completed] Frequency Match: "+ANSI_RED+((freq_start.equals(freq_end))?true:false)+ANSI_RESET);
+        System.out.println("[Completed] Is Sorted? "+ANSI_RED+pms.isSorted()+ANSI_RESET);
         
         executor.shutdown();    //Shuting Down executor
     }

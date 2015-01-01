@@ -1,6 +1,5 @@
 package sort;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -12,15 +11,36 @@ import java.util.Random;
 public class MergeSort implements Runnable
 {
     //Global Protected Varibles
-    protected Integer[] source;
+    protected Comparable[] source;
+    protected int start;
+    protected int mid;
+    protected int end;
+    
+    //Global Private Varibles
+    private boolean sorted = false;
    
     /**
      * Initialize Merge Sort.
      * @param source the source array.
      */
-    public MergeSort(Integer[] source)
+    public MergeSort(Comparable[] source)
     {
         this.source = source;
+        this.start = 0;
+        this.end = source.length - 1;
+    }
+    
+    /**
+     * Initialize Merge Sort.
+     * @param source The source array.
+     * @param start The starting index.
+     * @param end The last index.
+     */
+    public MergeSort(Comparable[] source, int start, int end)
+    {
+        this.source = source;
+        this.start = start;
+        this.end = end;
     }
 
     /**
@@ -29,27 +49,28 @@ public class MergeSort implements Runnable
     @Override
     public void run() 
     {
-        if(source.length < 2) return; //Recurssion End.        
-
-        //Divides the Array into two Sub Arrays to Merge Sort.
-        MergeSort msa = new MergeSort( Arrays.copyOfRange(source, 0, source.length/2) );
-        MergeSort msb = new MergeSort( Arrays.copyOfRange(source, source.length/2, source.length));
-
-        //Runs the Sub Arrays Merge Sort.
+        if(end <= start) return;
+        int mid = start + (end - start) / 2;
+        
+        MergeSort msa = new MergeSort( source, start, mid);
+        MergeSort msb = new MergeSort( source, mid+1, end);
+        
         msa.run();        
         msb.run();
-
-        //Merge Sorts the Results.
-        merge(msa.get(), msb.get());
+        
+        merge(source, start, mid, end);
     }    
     
     /**
      * Merges the sub ArrayList by setting them back into source ArrayList.
-     * @param a a sub ArrayList of the <em>source</em> ArrayList.
-     * @param b a sub ArrayList of the <em>source</em> ArrayList.
+     * @param a The Comparable array.
+     * @param lo The starting index.
+     * @param mid The middle index.
+     * @param hi The ending index.
      */
-    protected void merge(Integer[] a, Integer[] b)
+    protected void merge(Comparable[] a, int lo, int mid, int hi)
     {
+        Comparable [] aux = new Comparable [a.length];
         
         // copy to aux[]
         for (int k = lo; k <= hi; k++) {
@@ -65,48 +86,34 @@ public class MergeSort implements Runnable
             else                           a[k] = aux[i++];
         }
         
-        /*int i = 0, j = 0, k = 0;
-        
-        while(i < a.length && j < b.length){
-            if(a[i].compareTo(b[j]) < 0){
-                source[k] = a[i];
-                ++k;
-                ++i;
-            }else{
-                source[k] = b[j];
-                ++k;
-                ++j;
-            }
-        }
-        
-        while(i < a.length){
-            source[k] = a[i];
-            ++k;
-            ++i;
-        }
-        
-        while(j < b.length){
-            source[k] = b[j];
-            ++k;
-            ++j;
-        }*/
+        this.sorted = true;
+    }
+    
+    /**
+     * Compares two comparables returning the results.
+     * @param v Comparable
+     * @param w Comparable
+     * @return -1 0 or 1
+     */
+    private static boolean less(Comparable v, Comparable w) {
+        return (v.compareTo(w) < 0);
     }
 
     /**
      * Retrieves the result.
      * @return the sorted <em>source</em> ArrayList.
      */
-    public Integer[] get()
+    public boolean get()
     {
-        return source;
+        return sorted;
     }
     
     /**
      * Prints out the frequency of each element in the source list.
      * @return Map with a count of each value in source using value as a key.
      */
-    public Map<Integer, Integer> getFrequency() {
-        Map<Integer, Integer> freq = new HashMap<Integer, Integer>();
+    public Map<Comparable, Integer> getFrequency() {
+        Map<Comparable, Integer> freq = new HashMap<Comparable, Integer>();
         
         for(int i = 0; i < source.length; i++) {
             if(freq.containsKey(source[i])) {
@@ -118,7 +125,6 @@ public class MergeSort implements Runnable
         
         return freq;
     }
-    
     
     /**
      * Checks if an ArrayList is sorted.
@@ -133,17 +139,17 @@ public class MergeSort implements Runnable
     
     /**
      * The Main Java Method.
-     * @param args command-line argument. (Unused).
+     * @param args Command-line argument. (Unused).
      */
     public static void main(String[] args)
     {        
         //Initialize Local Varibles and Classes.
         long start, end;
-        final int length = 10000000;
+        final int length = 100000;
         Integer[] test = new Integer[length];
         Random rand = new Random();
-        Map<Integer, Integer> freq_start;
-        Map<Integer, Integer> freq_end;
+        Map<Comparable, Integer> freq_start;
+        Map<Comparable, Integer> freq_end;
         
         //Create the Random Array.
         for(int i = 0; i < length; i++) {
@@ -152,26 +158,26 @@ public class MergeSort implements Runnable
         
         //Initialze Merge Sort.
         MergeSort ms = new MergeSort(test);
+        freq_start = ms.getFrequency();
+        
+        System.out.println("[Starting] Is Sorted? "+ANSI_RED+ms.isSorted()+ANSI_RESET);
+        System.out.println("[Starting] Frequency: "+freq_start.toString());
         
         //Start Running Merge Sort.
-        System.out.println("[Starting] Is Sorted? "+ ms.isSorted());
-        System.out.println("[Starting] Array Size:"+test.length);
-        
-        freq_start = ms.getFrequency();
-        System.out.println("[Starting] Frequency: "+freq_start.toString());
-
-        System.out.println("Running Sort");
+        System.out.print(ANSI_BLUE+"Starting Sort..."+ANSI_RESET);
         start = System.currentTimeMillis(); //Start Time
         ms.run();
         end = System.currentTimeMillis();   //End Time
-        System.out.println("Done!");
-        
+        System.out.println(ANSI_BLUE+"Done!"+ANSI_RESET);
         freq_end = ms.getFrequency();
-        System.out.println("[Completed] Frequency: "+freq_end.toString());
-        
-        System.out.println("[Completed] Frequency Match: "+((freq_start.equals(freq_end))?true:false));
-        System.out.println("[Completed] The algorithm took: " + (end - start) + " ms.");
-        System.out.println("[Completed] Is Sorted? "+ ms.isSorted());
-        System.out.println("[Completed] Array Size:"+test.length);        
+
+        System.out.println("[Completed] The algorithm took: " + ANSI_RED + (end - start) + ANSI_RESET  +" ms");
+        System.out.println("[Completed] Frequency Match: "+ANSI_RED+((freq_start.equals(freq_end))?true:false)+ANSI_RESET);
+        System.out.println("[Completed] Is Sorted? "+ANSI_RED+ms.isSorted()+ANSI_RESET);
     }
+    
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_BLACK = "\u001B[30m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_BLUE = "\u001B[34m";
 }
