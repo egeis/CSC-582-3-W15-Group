@@ -15,9 +15,9 @@ public class InsertionSort {
     
     /**
      * 
-     * @param a 
-     * @param start 
-     * @param end 
+     * @param a The Source array.
+     * @param start The Starting Index.
+     * @param end The index of the last element.
      */
     public static void sort(Comparable[] a, int start, int end) {
         
@@ -31,8 +31,9 @@ public class InsertionSort {
         }
     }
 
-        /**
+    /**
      * Prints out the frequency of each element in the source list.
+     * @param source The source array.
      * @return Map with a count of each value in source using value as a key.
      */
     public static Map<Comparable, Integer> getFrequency(Comparable[] source) {
@@ -51,6 +52,7 @@ public class InsertionSort {
     
     /**
      * Checks if an ArrayList is sorted.
+     * @param source The Source Array.
      * @return True if the list is sorted.
      */
     protected static boolean isSorted(Comparable[] source)
@@ -63,7 +65,12 @@ public class InsertionSort {
         return true;
     }
     
-    // exchange a[i] and a[j]
+    /**
+     * Exchanges a[i] and a[j]
+     * @param a The Source array.
+     * @param i Index of the element to be swapped.
+     * @param j The index of the element that takes the place of i.
+     */
     private static void exch(Comparable[] a, int i, int j) {
         Comparable swap = a[i];
         a[i] = a[j];
@@ -84,6 +91,8 @@ public class InsertionSort {
         }
         
         freq_start = getFrequency(test);
+        sort(test, 0 , 44);
+        sort(test, 45 , 99);
         sort(test, 0 , 99);
         freq_end = getFrequency(test);
         
