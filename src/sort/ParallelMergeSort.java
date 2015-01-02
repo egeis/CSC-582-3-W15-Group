@@ -75,7 +75,11 @@ public class ParallelMergeSort extends MergeSort
         //Insertion Sort for M sized or less arrays.
         if(depth >= insertion_depth && insertion_depth != 0) {
             //System.out.println("Insertion Sort: Depth: "+depth+" Start:"+start+" End:"+end);
-            InsertionSort.sort(source, start, end);
+            InsertionSort is = new InsertionSort(source, start, end);
+            is.run();
+            
+            System.out.println(is.isSorted());
+            
             return;
         }
         
