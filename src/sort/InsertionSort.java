@@ -10,7 +10,12 @@ import static sort.MergeSort.ANSI_RESET;
  *
  * @author Richard Coan
  */
-public class InsertionSort {
+public class InsertionSort implements Runnable {
+    
+    private Comparable[] a;
+    private int start;
+    private int end;
+    private boolean sorted;
     
     /**
      * 
@@ -18,8 +23,15 @@ public class InsertionSort {
      * @param start The Starting Index.
      * @param end The index of the last element.
      */
-    public static void sort(Comparable[] a, int start, int end) {
-        
+    public InsertionSort(Comparable[] a, int start, int end) {
+        this.a = a;
+        this.start = start;
+        this.end = end;
+        this.sorted = false;
+    }
+    
+    @Override
+    public void run() {
         for (int i = start+1; i < (end + 1); i++) {
             for (int j = i; j > 0; j--) {
                 if (a[j-1].compareTo(a[j]) > 0) {
@@ -29,20 +41,29 @@ public class InsertionSort {
             }
         }
     }
+    
+    /**
+     * Retrieves the result.
+     * @return the sorted <em>source</em> ArrayList.
+     */
+    public boolean get()
+    {
+        return sorted;
+    }
 
     /**
      * Prints out the frequency of each element in the source list.
      * @param source The source array.
      * @return Map with a count of each value in source using value as a key.
      */
-    public static Map<Comparable, Integer> getFrequency(Comparable[] source) {
+    public Map<Comparable, Integer> getFrequency() {
         Map<Comparable, Integer> freq = new HashMap<Comparable, Integer>();
         
-        for(int i = 0; i < source.length; i++) {
-            if(freq.containsKey(source[i])) {
-                freq.put(source[i], freq.get(source[i]) + 1);
+        for(int i = 0; i < a.length; i++) {
+            if(freq.containsKey(a[i])) {
+                freq.put(a[i], freq.get(a[i]) + 1);
             } else {
-                freq.put(source[i], 1);
+                freq.put(a[i], 1);
             }
         }
         
@@ -54,14 +75,18 @@ public class InsertionSort {
      * @param source The Source Array.
      * @return True if the list is sorted.
      */
-    protected static boolean isSorted(Comparable[] source)
+    protected boolean isSorted()
     {
-        for (int i = 1; i < source.length; i++)
-            if(source[i].compareTo(source[i-1]) < 0) {
-                System.out.println("Error near Index "+i);
-                return false;
+        boolean success = true;
+        
+        for (int i = 1; i < a.length; i++)
+            if(a[i].compareTo(a[i-1]) < 0) {
+                System.out.println("Error near Index "+i+" Adjacent Elements: ");
+                System.out.println(" Adjacent Elements: "+(i-1)+" "+a[i-1]+" "+(i)+" "+a[i]);
+                success = false;
             }
-        return true;
+        
+        return success;
     }
     
     /**
@@ -79,24 +104,23 @@ public class InsertionSort {
     // read in a sequence of words from standard input and print
     // them out in sorted order
     public static void main(String[] args) {
-        final int length = 100;
+        final int length = 10000;
         Integer[] test = new Integer[length];
         Random rand = new Random();
         Map<Comparable, Integer> freq_start;
         Map<Comparable, Integer> freq_end;
-                
+        InsertionSort is = new InsertionSort(test, 0 , (length - 1)); 
+        
         for(int i = 0; i < length; i++) {
             test[i] = (int) (rand.nextDouble() * 10);
         }
         
-        freq_start = getFrequency(test);
-        sort(test, 0 , 44);
-        sort(test, 45 , 99);
-        sort(test, 0 , 99);
-        freq_end = getFrequency(test);
+        freq_start = is.getFrequency();
+        //sort(test, 45 , 99);
+        is.run();
+        freq_end = is.getFrequency();
         
         System.out.println("[Completed] Frequency Match: "+ANSI_RED+((freq_start.equals(freq_end))?true:false)+ANSI_RESET);
-        System.out.println("[Completed] Is Sorted? "+ANSI_RED+isSorted(test)+ANSI_RESET);
-        freq_start = getFrequency(test);
+        System.out.println("[Completed] Is Sorted? "+ANSI_RED+is.isSorted()+ANSI_RESET);
     }
 }
