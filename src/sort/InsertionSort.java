@@ -1,6 +1,5 @@
 package sort;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -87,7 +86,7 @@ public class InsertionSort {
         Map<Comparable, Integer> freq_end;
                 
         for(int i = 0; i < length; i++) {
-            test[i] = Math.abs(rand.nextInt());
+            test[i] = (int) (rand.nextDouble() * 10);
         }
         
         freq_start = getFrequency(test);
