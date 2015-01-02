@@ -132,12 +132,16 @@ public class MergeSort implements Runnable
      */
     protected boolean isSorted()
     {
+        boolean success = true;
+        
         for (int i = 1; i < source.length; i++)
             if(source[i].compareTo(source[i-1]) < 0) {
-                System.out.println("Error near Index "+i);
-                return false;
+                System.out.println("Error near Index "+i+" Adjacent Elements: ");
+                System.out.println(" Adjacent Elements: "+(i-1)+" "+source[i-1]+" "+(i)+" "+source[i]);
+                success = false;
             }
-        return true;
+        
+        return success;
     }
     
     /**
@@ -156,16 +160,13 @@ public class MergeSort implements Runnable
         
         //Create the Random Array.
         for(int i = 0; i < length; i++) {
-            test[i] = Math.abs(rand.nextInt());
+            test[i] = (int) (rand.nextDouble() * 10);
         }
         
         //Initialze Merge Sort.
         MergeSort ms = new MergeSort(test);
         freq_start = ms.getFrequency();
-        
-        System.out.println("[Starting] Is Sorted? "+ANSI_RED+ms.isSorted()+ANSI_RESET);
-        System.out.println("[Starting] Frequency: "+freq_start.toString());
-        
+                
         //Start Running Merge Sort.
         System.out.print(ANSI_BLUE+"Starting Sort..."+ANSI_RESET);
         start = System.currentTimeMillis(); //Start Time
