@@ -137,7 +137,7 @@ public class MergeSort implements Runnable
         for (int i = 1; i < source.length; i++)
             if(source[i].compareTo(source[i-1]) < 0) {
                 System.out.println("Error near Index "+i+" Adjacent Elements: ");
-                System.out.println(" Adjacent Elements: "+(i-1)+" "+source[i-1]+" "+(i)+" "+source[i]);
+                System.out.println(" Adjacent Elements: ["+(i-1)+"] "+source[i-1]+" ["+(i)+"] "+source[i]);
                 success = false;
             }
         
