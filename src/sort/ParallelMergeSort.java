@@ -45,7 +45,7 @@ public class ParallelMergeSort extends MergeSort
             insertion_depth++;
         } 
         
-        System.out.println("Target Insertion Depth: "+insertion_depth);
+        System.out.println("Target Insertion Depth: "+insertion_depth+" Using M:"+m);
         
         if(executor == null) executor = Executors.newCachedThreadPool();
     }
@@ -71,20 +71,18 @@ public class ParallelMergeSort extends MergeSort
     public void run()
     {
         if(end <= start) return;    //Recursive Ending        
+        int mid = start + (end - start) / 2;
         
         //Insertion Sort for M sized or less arrays.
         if(depth >= insertion_depth && insertion_depth != 0) {
-            //System.out.println("Insertion Sort: Depth: "+depth+" Start:"+start+" End:"+end);
-            InsertionSort is = new InsertionSort(source, start, end);
-            is.run();
+            System.out.println("Insertion Sort: Depth: "+depth+" Start:"+start+" End:"+end);
+            InsertionSort isa = new InsertionSort(source, start, mid);
+            InsertionSort isb = new InsertionSort(source, mid+1, end);
             
-            System.out.println(is.isSorted());
-            
-            return;
-        }
+            isa.run();
+            isb.run();
+        } else
         
-        int mid = start + (end - start) / 2;
-
         //Parallel Merge Sort
         if(depth < 2)
         {
@@ -130,20 +128,50 @@ public class ParallelMergeSort extends MergeSort
     {        
         //Initialize Local Varibles and Classes.
         long start, end;
-        final int length = 20;
+        final int length = 40;
         Integer[] test = new Integer[length];
         Random rand = new Random();
-        
+        ParallelMergeSort pms;
         Map<Comparable, Integer> freq_start;
         Map<Comparable, Integer> freq_end;
         
+        /*
+        System.out.println("Merge Sort");
          //Create the Random Array.
         for(int i = 0; i < length; i++) {
             test[i] = (int) (rand.nextDouble() * 10);
         }
         
         //Initialze Parallel Merge Sort.
-        ParallelMergeSort pms = new ParallelMergeSort(test, 5);
+        pms = new ParallelMergeSort(test);
+        freq_start = pms.getFrequency();
+        
+        System.out.println(Arrays.toString(test));
+        System.out.println(freq_start.toString());
+        
+        //Start Running Merge Sort.
+        System.out.print(ANSI_BLUE+"Starting Sort..."+ANSI_RESET);
+        start = System.currentTimeMillis(); //Start Time
+        pms.run();
+        end = System.currentTimeMillis();   //End Time
+        freq_end = pms.getFrequency();
+        System.out.println(ANSI_BLUE+"Done!"+ANSI_RESET);
+        
+        System.out.println(freq_end.toString());
+        System.out.println(Arrays.toString(test));
+        System.out.println("[Completed] The algorithm took: " + ANSI_RED + (end - start) + ANSI_RESET  +" ms");
+        System.out.println("[Completed] Frequency Match: "+ANSI_RED+((freq_start.equals(freq_end))?true:false)+ANSI_RESET);
+        System.out.println("[Completed] Is Sorted? "+ANSI_RED+pms.isSorted()+ANSI_RESET);
+        */ 
+        
+        System.out.println("Merge Sort with Insertion Sort");
+         //Create the Random Array.
+        for(int i = 0; i < length; i++) {
+            test[i] = (int) (rand.nextDouble() * 10);
+        }
+        
+        //Initialze Parallel Merge Sort.
+        pms = new ParallelMergeSort(test,10);
         freq_start = pms.getFrequency();
         
         System.out.println(Arrays.toString(test));
