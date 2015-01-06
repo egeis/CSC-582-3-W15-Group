@@ -3,7 +3,7 @@ package sort.tasks;
 import java.util.concurrent.Callable;
 
 /**
- *
+ * A callable concurrent Merge Sort tasks. 
  * @author Richard Coan
  */
 public class MergeTask extends Base implements Callable<Comparable[]>
@@ -50,11 +50,13 @@ public class MergeTask extends Base implements Callable<Comparable[]>
     @Override
     public Comparable[] call() throws Exception
     {
-        if(done) return a;
+        if(done) return a;  //Edge Case...
         
+        //Initialize Local Varibles
         Comparable[] results = new Comparable[a.length+b.length];
         int k = 0, i = 0, j = 0;
         
+        //Merge Sort
         while(i < a.length && j < b.length)
         {
             if(b[j].compareTo(a[i]) < 0)
