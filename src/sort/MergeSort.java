@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Serial Merge Sorts.
+ * Serial (Non-concurrent) recursive Merge Sort.
  * @author Richard Coan
  */
 public class MergeSort implements Runnable
@@ -115,11 +115,11 @@ public class MergeSort implements Runnable
     public Map<Comparable, Integer> getFrequency() {
         Map<Comparable, Integer> freq = new HashMap<Comparable, Integer>();
         
-        for(int i = 0; i < source.length; i++) {
-            if(freq.containsKey(source[i])) {
-                freq.put(source[i], freq.get(source[i]) + 1);
+        for (Comparable source1 : source) {
+            if (freq.containsKey(source1)) {
+                freq.put(source1, freq.get(source1) + 1);
             } else {
-                freq.put(source[i], 1);
+                freq.put(source1, 1);
             }
         }
         

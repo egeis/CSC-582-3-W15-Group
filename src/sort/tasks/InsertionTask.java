@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package sort.tasks;
 
 import java.util.Map;
@@ -10,11 +5,11 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 
 /**
- *
- * @author egeis
+ * A callable Insertion Sort. 
+ * @author Richard Coan
  */
 public class InsertionTask extends Base implements Callable<Comparable[]> {
-    private Comparable[] source;
+    private final Comparable[] source;
             
     /**
      * Initialize the Task with an comparable type Array or Sub-Array.
@@ -40,8 +35,10 @@ public class InsertionTask extends Base implements Callable<Comparable[]> {
         return source;
     }
 
-    // read in a sequence of words from standard input and print
-    // them out in sorted order
+    /**
+     * The Main Java Method.(Testing)
+     * @param args command-line argument. (Unused).
+     */
     public static void main(String[] args) {
         final int length = 10;
         Integer[] test = new Integer[length];
@@ -64,7 +61,7 @@ public class InsertionTask extends Base implements Callable<Comparable[]> {
         }
         
         freq_end = it.getFrequency(test);
-        System.out.println("[Completed] Frequency Match: "+ANSI_RED+((freq_start.equals(freq_end))?true:false)+ANSI_RESET);
+        System.out.println("[Completed] Frequency Match: "+ANSI_RED+freq_start.equals(freq_end)+ANSI_RESET);
         System.out.println("[Completed] Is Sorted? "+ANSI_RED+it.isSorted(test)+ANSI_RESET);
     }
 }
