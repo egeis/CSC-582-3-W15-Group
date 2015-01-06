@@ -1,23 +1,30 @@
 package sort;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import sort.tasks.Base;
+import sort.tasks.MergeTask;
 
 /**
  * Parallel Merge Sort
  * @author Richard Coan
  */
-public class ParallelMergeSort extends MergeSort
+public class ParallelMergeSort extends Base
 {
     //Global Private Varibles
     private static ExecutorService executor;
-    private int depth = 0;
-    private static int insertion_depth;
+    private int m = 0;
+    private boolean hybrid = false;
+    private Comparable[] source;    
+    private List<FutureTask<Comparable[]>> list = new ArrayList();
         
     /**
      * Initialize Parallel Merge Sort.
@@ -25,7 +32,7 @@ public class ParallelMergeSort extends MergeSort
      */
     public ParallelMergeSort(Comparable[] source) 
     {
-        super(source);
+        this.source = source;
         if(executor == null) executor = Executors.newCachedThreadPool();
     }
     
@@ -35,39 +42,83 @@ public class ParallelMergeSort extends MergeSort
      * @param m Sublist size maximum to begin insertion Sort.  Must be greater than 2.
      */
     public ParallelMergeSort(Comparable[] source, int m) 
-    {
-        super(source);
-        
-        //Calculate
-        int c = source.length;
-        while(c > m && m > 1) {
-            c = c / 2;
-            insertion_depth++;
-        } 
-        
-        System.out.println("Target Insertion Depth: "+insertion_depth+" Using M:"+m);
-        
-        if(executor == null) executor = Executors.newCachedThreadPool();
+    {        
+        this(source);
+        if(m > 1) this.m = m;
+        else throw new IllegalArgumentException("M size too small.");
+        this.hybrid = true;
     }
     
-    /**
-     * Initialize Parallel Merge Sort.
-     * @param source The source array.
-     * @param depth The current depth.
-     * @param start The starting index.
-     * @param end The last index.
-     */
-    public ParallelMergeSort(Comparable[] source, int depth, int start, int end)
-    {
-        super(source, start, end);
-        this.depth = depth;
-        if(executor == null) executor = Executors.newCachedThreadPool();
+    public Comparable[] sort() {
+        Comparable[] results = new Comparable[source.length];
+        
+        //Bottom UP Merge Sort Start 
+        for(int i = 0; i < source.length; i+=2) {            
+            FutureTask<Comparable[]> ft = new FutureTask(new MergeTask(source[i], source[i+1]));
+            list.add(ft);
+            executor.execute(ft);
+        }
+        
+        //Edge Case Queue.
+        if(source.length % 2 == 1) {
+            System.out.println("[DEBUG] Odd Values");
+            FutureTask<Comparable[]> fa = list.remove(0);
+            Comparable[] a;
+            
+            try {
+                a = fa.get();
+            } catch (ExecutionException | InterruptedException e) {
+                System.out.println("[Error]:"+e.getCause());
+                e.printStackTrace();
+                return null;
+            }
+            
+            Comparable[] b = new Comparable[1];
+            b[0] = source[source.length - 1];
+            
+            FutureTask<Comparable[]> ft = new FutureTask(new MergeTask(a, b));
+            list.add(ft);
+            executor.execute(ft);
+        }
+        
+        while(list.size() > 1) {
+            FutureTask<Comparable[]> fa = list.remove(0);
+            FutureTask<Comparable[]> fb = list.remove(0);
+            
+            Comparable[] a;
+            Comparable[] b;
+            
+            try {
+                a = fa.get();
+                b = fb.get();
+             } catch (ExecutionException | InterruptedException e) {
+                System.out.println("[Error]:"+e.getCause());
+                e.printStackTrace(); 
+                return null;
+             } 
+            
+            FutureTask<Comparable[]> ft = new FutureTask(new MergeTask(a,b));
+            list.add(ft);
+            executor.execute(ft);
+        }
+        executor.shutdown();
+        //System.out.println("[DEBUG] Ending with " + list.size() + " items.");
+        FutureTask<Comparable[]> ft = list.remove(0);
+                
+        try {
+            while(!ft.isDone()) {}
+            return ft.get();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        } 
     }
-
+    
+    
     /**
      * @see java.lang.Runnable
      */
-    @Override
+    /*@Override
     public void run()
     {
         if(end <= start) return;    //Recursive Ending        
@@ -118,7 +169,7 @@ public class ParallelMergeSort extends MergeSort
         }
         
         merge(source, start, mid, end);
-    }
+    }*/
     
     /**
      * The Main Java Method.
@@ -128,68 +179,38 @@ public class ParallelMergeSort extends MergeSort
     {        
         //Initialize Local Varibles and Classes.
         long start, end;
-        final int length = 40;
+        final int length = 1000000;
         Integer[] test = new Integer[length];
         Random rand = new Random();
         ParallelMergeSort pms;
         Map<Comparable, Integer> freq_start;
         Map<Comparable, Integer> freq_end;
         
-        /*
-        System.out.println("Merge Sort");
          //Create the Random Array.
         for(int i = 0; i < length; i++) {
             test[i] = (int) (rand.nextDouble() * 10);
         }
         
         //Initialze Parallel Merge Sort.
-        pms = new ParallelMergeSort(test);
-        freq_start = pms.getFrequency();
+        pms = new ParallelMergeSort(test, 10);
+        freq_start = pms.getFrequency(test);
         
-        System.out.println(Arrays.toString(test));
-        System.out.println(freq_start.toString());
-        
-        //Start Running Merge Sort.
-        System.out.print(ANSI_BLUE+"Starting Sort..."+ANSI_RESET);
-        start = System.currentTimeMillis(); //Start Time
-        pms.run();
-        end = System.currentTimeMillis();   //End Time
-        freq_end = pms.getFrequency();
-        System.out.println(ANSI_BLUE+"Done!"+ANSI_RESET);
-        
-        System.out.println(freq_end.toString());
-        System.out.println(Arrays.toString(test));
-        System.out.println("[Completed] The algorithm took: " + ANSI_RED + (end - start) + ANSI_RESET  +" ms");
-        System.out.println("[Completed] Frequency Match: "+ANSI_RED+((freq_start.equals(freq_end))?true:false)+ANSI_RESET);
-        System.out.println("[Completed] Is Sorted? "+ANSI_RED+pms.isSorted()+ANSI_RESET);
-        */ 
-        
-        System.out.println("Merge Sort with Insertion Sort");
-         //Create the Random Array.
-        for(int i = 0; i < length; i++) {
-            test[i] = (int) (rand.nextDouble() * 10);
-        }
-        
-        //Initialze Parallel Merge Sort.
-        pms = new ParallelMergeSort(test,10);
-        freq_start = pms.getFrequency();
-        
-        System.out.println(Arrays.toString(test));
-        System.out.println(freq_start.toString());
+        //System.out.println(freq_start.toString());
+        //System.out.println(Arrays.toString(test));
         
         //Start Running Merge Sort.
         System.out.print(ANSI_BLUE+"Starting Sort..."+ANSI_RESET);
         start = System.currentTimeMillis(); //Start Time
-        pms.run();
+        Comparable[] results = pms.sort();
         end = System.currentTimeMillis();   //End Time
-        freq_end = pms.getFrequency();
+        freq_end = pms.getFrequency(results);
         System.out.println(ANSI_BLUE+"Done!"+ANSI_RESET);
         
-        System.out.println(freq_end.toString());
-        System.out.println(Arrays.toString(test));
+        //System.out.println(Arrays.toString(results));
+        //System.out.println(freq_end.toString());
         System.out.println("[Completed] The algorithm took: " + ANSI_RED + (end - start) + ANSI_RESET  +" ms");
         System.out.println("[Completed] Frequency Match: "+ANSI_RED+((freq_start.equals(freq_end))?true:false)+ANSI_RESET);
-        System.out.println("[Completed] Is Sorted? "+ANSI_RED+pms.isSorted()+ANSI_RESET);
+        System.out.println("[Completed] Is Sorted? "+ANSI_RED+pms.isSorted(results)+ANSI_RESET);
         
         executor.shutdown();    //Shuting Down executor
     }
