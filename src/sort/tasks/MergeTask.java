@@ -3,7 +3,7 @@ package sort.tasks;
 import java.util.concurrent.Callable;
 
 /**
- * A callable concurrent Merge Sort tasks. 
+ * A callable Merge Sort task. 
  * @author Richard Coan
  */
 public class MergeTask extends Base implements Callable<Comparable[]>
