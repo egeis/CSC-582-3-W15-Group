@@ -159,8 +159,7 @@ public class ParallelMergeSort extends Base
         }
         
         /*Initialze Parallel Merge Sort.*/
-        //pms = new ParallelMergeSort(test);
-        pms = new ParallelMergeSort(test, ParallelMergeSort.INSERTION_SORT, 1000);
+        pms = new ParallelMergeSort(test);
         freq_start = pms.getFrequency(test);
         
         /*Start Running Merge Sort.*/
