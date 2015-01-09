@@ -56,7 +56,7 @@ public class HybridSortTEST {
         System.out.println("[Completed] Frequency Match: "+ANSI_RED+((freq_start.equals(freq_end))?true:false)+ANSI_RESET);
         System.out.println("[Completed] Is Sorted? "+ANSI_RED+pms.isSorted(results)+ANSI_RESET);
                 
-        executor.shutdown();    //Shuting Down executor
+        pms.executor.shutdown();    //Shuting Down executor
     }
     
 }
