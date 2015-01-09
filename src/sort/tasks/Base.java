@@ -35,7 +35,7 @@ public class Base {
      * Checks if an ArrayList is sorted.
      * @return True if the list is sorted.
      */
-    protected boolean isSorted(Comparable[] source)
+    public boolean isSorted(Comparable[] source)
     {
         boolean success = true;
         
