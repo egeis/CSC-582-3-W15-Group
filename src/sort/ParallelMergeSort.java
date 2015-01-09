@@ -20,7 +20,7 @@ import sort.tasks.MergeTask;
 public class ParallelMergeSort extends Base
 {
     //Global Private Varibles
-    private static ThreadPoolExecutor executor;
+    public static ThreadPoolExecutor executor;
     private static CompletionService service;
     private int m = 0;
     private Comparable[] source; 
