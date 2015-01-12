@@ -15,7 +15,47 @@ import sort.tasks.InsertionTask;
 import sort.tasks.MergeTask;
 
 /**
- * Concurrent Merge Sort with Hybrid Alternative.
+ * Concurrent Merge Sort with Hybrid Alternative.  Hybrid sort will start by using the hybrid sort
+ * selected on sub arrays of size-m.  Once all hybrid sorts have been started the remaining sorting
+ * is completed using merge sort.
+ * 
+ * How Merge Sort Works Concurently (PSUEDO CODE):
+ * 
+ * WHERE m = m-size, DEFAULT is 2.
+ * 
+ * FOR i = 0 WHILE i < source.length INCREMENT i BY m
+ *  IF SET SORT IS merge sort THEN 
+ *   Generate and Submit to Completion Merge Sort Tasks for each Pair.
+ *  END IF
+ *  ELSE IF SET SORT IS Insertion Sort THEN
+ *   Generate and Submit to Completion Insertion Sort USING Sub Array starting at i WITH size = m. 
+ *  END IF
+ * 
+ *  Increment Count.
+ * END FOR
+ *  
+ * WHILE  Count is greater than 1 DO
+ *  TAKE two COMPLETED TASKS, c1 & c2.
+ *  GET the FUTURE values of c1 & c2 AS f1 & f2.
+ *  GENERATE AND SUBMIT MERGE a TASK FOR f1 & f2.
+ *  DECREMENT Count by 1.
+ * END WHILE
+ * 
+ * TAKE the last COMPLETED TASKS, c1.
+ * GET and RETURN the FUTURE VALUE of c1.
+ * 
+ * USAGE EXAMPLE for Merge Sort with Hybrid Sort:
+ * * Initialize a new Parallel Merge Sort with the input array, Hybrid Sort type, and m-size used for hybrid sort.
+ * ParallelMergeSort pms = new ParallelMergeSort(test,ParallelMergeSort.INSERTION_SORT, 1000);
+ * * Call the sort() method start the sort and retrieve the results.
+ * Comparable[] results = pms.sort();
+ * 
+ * USAGE for Merge Sort:
+ * * Initialize a new Parallel Merge Sort with the input array.
+ * ParallelMergeSort pms = new ParallelMergeSort(test);
+ * * Call the sort() method start the sort and retrieve the results.
+ * Comparable[] results = pms.sort();
+ * 
  * @author Richard Coan
  */
 public class ParallelMergeSort extends Base
