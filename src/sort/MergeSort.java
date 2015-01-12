@@ -5,7 +5,30 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Serial (Non-concurrent) recursive Merge Sort.
+ * Serial (Non-concurrent) recursive Merge Sort. The run() method initiates the sort by recursively dividing the
+ * array until the start and end indexs match then merging each half.
+ * 
+ * * Recurssive Merge Sort works as followed:
+ * IF start AND end MATCH RETURN
+ * mid = start + (end - start) / 2
+ * CREATE A NEW Merge Sort FROM start TO mid AS a
+ * CREATE A NEW Merge Sort FROM mid + 1 TO end AS b
+ * 
+ * RUN a
+ * RUN b
+ * 
+ * Merge a AND b 
+ * 
+ * USAGE EXAMPLE:
+ * * Create the initial sort with the array to be sorted.
+ * MergeSort ms = new MergeSort(test);
+ * * Run the Sort
+ * ms.run()
+ * * test will then be Merge Sorted.
+ * 
+ * Merge Sort, sorting is based on the algorthim at:
+ * http://algs4.cs.princeton.edu/22mergesort/Merge.java.html
+ * 
  * @author Richard Coan
  */
 public class MergeSort implements Runnable
@@ -63,6 +86,7 @@ public class MergeSort implements Runnable
     
     /**
      * Merges the sub ArrayList by setting them back into source ArrayList.
+     * 
      * @param a The Comparable array.
      * @param lo The starting index.
      * @param mid The middle index.
