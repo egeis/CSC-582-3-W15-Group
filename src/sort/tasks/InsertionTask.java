@@ -6,6 +6,19 @@ import java.util.concurrent.Callable;
 
 /**
  * A callable Insertion Sort. 
+ * 
+ * USAGE EXAMPLE, non-threaded:
+ * * CREATE a new Insertion Sort with initial unsorted array.
+ * InsertionTask it = new InsertionTask(test); 
+ * * CALL sort and RETRIEVE sorted array.
+ * test = (Integer[]) it.call();
+ * 
+ * USAGE EXAMPLE, threaded:
+ * * USING an Executor OR Completion Service
+ * * Create the new Sort task with an initial array and submit it.
+ * service.submit(new InsertionTask(Arrays.copyOfRange(source, i, i+m)));
+ * 
+ * Insertion Sort Algorithm based on: http://algs4.cs.princeton.edu/21elementary/Insertion.java.html
  * @author Richard Coan
  */
 public class InsertionTask extends Base implements Callable<Comparable[]> {
