@@ -15,7 +15,7 @@ import sort.tasks.InsertionTask;
 import sort.tasks.MergeTask;
 
 /**
- * Concurrent Merge Sort with Hybrid Alternative.  Hybrid sort will start by using the hybrid sort
+ * A Concurrent (Unstable) Merge Sort with Hybrid Alternative.  Hybrid sort will start by using the hybrid sort
  * selected on sub arrays of size-m.  Once all hybrid sorts have been started the remaining sorting
  * is completed using merge sort.
  * 
