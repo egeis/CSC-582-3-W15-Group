@@ -17,9 +17,9 @@ public class Message {
     
     //SETTER Messages
     public final static int SET_INPUT = 11;      //Setup the input array
-    public final static int SET_GO_LEFT = 12;    //GO LEFT
-    public final static int SET_GO_RIGHT = 13;   //GO Right
-    public final static int SET_RESULTS = 14;    //The Results of the node.
+    public final static int SET_START = 12;      //Start Working..
+    public final static int SET_GO_LEFT = 13;    //GO LEFT
+    public final static int SET_GO_RIGHT = 14;   //GO Right
     public final static int SET_TERMINATION = 20;//Starts the Node Shutdown
     
     //GETTER Messages
