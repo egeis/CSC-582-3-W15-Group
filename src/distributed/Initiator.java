@@ -21,9 +21,10 @@ public class Initiator {
 
     private Comparable[] arr;    
     private boolean completed = false;
+    private long lastbeat = System.currentTimeMillis();
     
     public final static int SERVER_PORT_NUMBER = 8484;
-    private static List<Agent> agents = new ArrayList<Agent>();
+    private static HashMap<Integer, Agent> agents = new HashMap<Integer, Agent>();
     
     private ServerSocket server;
     private ObjectOutputStream output;
@@ -42,78 +43,31 @@ public class Initiator {
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
-        
-        Thread inbound = new Thread() {
-            @Override
-            public void run()
-            {
-                try {
-                    while(true)
-                    {
-                        //Blocks Until a something is sent.
-                        Socket socket = server.accept();   
-                        input = new ObjectInputStream(socket.getInputStream());
-                        Packet p = (Packet) input.readObject();
-
-                        //Do Something with the Packet.
-                        System.out.println(p.toString());
-                        parsePacket(p, socket.getPort());
-
-                        //Close the Socket
-                        input.close();
-                    }
-                } catch (IOException | ClassNotFoundException ex) {
-                    if(server.isClosed())
-                        logger.log(Level.INFO, null, "Connection Terminated");
-                    else
-                        logger.log(Level.SEVERE, null, ex);
-                }
-            }
-        };
-            
-        inbound.start();
-            
-        //Send out the initial data.
-        
-        //Handle the remaining operations.
-        /**
-         * 1) Check the Status of each node if the heartbeat inc. is reached.
-         * 2) Something that can be done for a specific node, IE output something.
-         * 3) At the end of the for-loop do something globally.
-         * 4) repeat if not completed.
-         */
-        while(true && agents.size() > 0) 
-        {
-            for(Agent a : agents)
-            {
-                if(a.active) {
-                    if(System.currentTimeMillis() - a.heartbeat > 1000 )
-                    {
-                        Packet p = new Packet();
-                        p.type = Message.GET_STATE;
-                        sendPacket(p,a);
-
-                        a.heartbeat = System.currentTimeMillis();
-                    }
-
-                    //Do Stuff per node.
-                    //Additional logic on what and how do it is necessary...
-                }
-            }
-
-            //Do something else globally, which is looped every iteration.
+                    
+        while(true) 
+        {            
+           //Logic for steps 5 - 9
             
             if(completed) break;
+        }
+        
+        //Calls for Node Termination.
+        for(Agent a : agents.values())
+        {
+            if(a.active)
+            {
+                Packet p = Message.getPacket(Message.SET_TERMINATION);
+                sendPacket(p,a);
+            }
         }
             
         try {    
             server.close(); //Close the Server, causes Socket to throw Exception.
-            inbound.join(); //Stops the thread.
-        } catch (IOException | InterruptedException ex) {
+        } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }       
     }
-    
+      
     private void sendPacket(Packet p, Agent a)
     {        
         try {
@@ -122,6 +76,7 @@ public class Initiator {
             output.writeObject(p);
             a.success = true;
             a.retry = 0;
+            a.lastSent = System.currentTimeMillis();
 
         } catch (IOException ex) {
             logger.log(Level.INFO, "Cannot Connect to PORT:"+a.PORT);
@@ -145,9 +100,20 @@ public class Initiator {
     {
         int type = p.type;
         
+        Agent a = agents.get(port);
+        a.lastRecieved = System.currentTimeMillis();
+        
         switch(type)
         {
-           //DO stuff...
+            case Message.NODE_WAITING_NEXT:
+                //DO STUFF...
+                break;
+            case Message.NODE_WAITING_INPUT:
+                //DO STUFF...
+                break;
+            case Message.SET_RESULTS:
+                //DO STUFF...
+                break;
         }
     }
     
@@ -172,29 +138,33 @@ public class Initiator {
     
     public static void main(String[] args)
     {
-        int length = 1000;
-        int k = 500;
+        final int LENGTH = 1000;
+        final int K = 500;
         
         //Remote Workers
-        agents.add(new Agent(1212));
-        agents.add(new Agent(1213));
+        agents.put(1212, new Agent(1212));
+        agents.put(1213, new Agent(1213));
         
-        Integer[] sample = sort.output.TestArray.generate(length);
-        Initiator node = new Initiator(sample);
-        node.start();
+        Integer[] sample = sort.output.TestArray.generate(LENGTH);
+        Initiator init = new Initiator(sample);
+        init.start();
         
-        System.out.println("The Kth value (where k = "+k+") is: " + node.getKthValue(length));
+        System.out.println("The Kth value (where k = "+K+") is: " + init.getKthValue(LENGTH));
     }
     
     private static class Agent {
 
         public Agent(int port) {
             this.PORT = port;
-            this.heartbeat = System.currentTimeMillis();
+            this.lastSent = 0;
+            this.lastRecieved = 0;
         }
         
+        public long lastRecieved;
+        public long lastSent;
+        
         public final int PORT;
-        public long heartbeat;
+        
         public int retry = 0;
         public boolean success = false;
         public boolean active = true;
