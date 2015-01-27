@@ -1,13 +1,15 @@
 package distributed;
 
-import distributed.messages.Packet;
 import distributed.messages.Message;
+import distributed.messages.Packet;
 import distributed.messages.store.*;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,10 +17,10 @@ import java.util.logging.Logger;
  *
  */
 public class Node {
-    
-    private static Logger logger;
-    private static int PORT_NUMBER = 1212;
     private static final int INIT_PORT_NUMBER = Initiator.SERVER_PORT_NUMBER;
+    
+    private static int PORT_NUMBER;
+    private static Logger LOGGER;
     
     private boolean shutdown = false;
     private int status = 1;
@@ -34,7 +36,6 @@ public class Node {
          
     private Node()
     {
-        Logger.getLogger(Node.class.getName()+PORT_NUMBER);
         status = Message.NODE_STARTING;
         
         try {
@@ -52,7 +53,7 @@ public class Node {
             
             server.close();
         } catch (IOException | ClassNotFoundException ex) {
-            logger.log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
     
@@ -65,7 +66,7 @@ public class Node {
             output.flush();
             out.close();
         } catch (IOException ex) {
-           logger.log(Level.SEVERE, null, ex);
+           LOGGER.log(Level.SEVERE, null, ex);
         }
     }
     
@@ -108,7 +109,7 @@ public class Node {
             break;
                 
             default:
-                logger.log(Level.SEVERE, null, "Unknown Packet: "+type+" "+p.toString());
+                LOGGER.log(Level.SEVERE, null, "Unknown Packet: "+type+" "+p.toString());
         }
     }
     
@@ -117,9 +118,14 @@ public class Node {
         if(args.length > 0)
         {
             PORT_NUMBER = Integer.parseInt(args[0]);
+        } else {
+            System.out.println("Please include a port number as an argument.");
+            System.out.println("Press any key to quit.");
+            Scanner s = new Scanner(System.in);s.next();
+            System.exit(1);
         }
         
-        logger = Logger.getLogger(Node.class.getName()+PORT_NUMBER);
+        LOGGER = Logger.getLogger(Node.class.getName()+PORT_NUMBER);
         Node node = new Node();
     }
 }

@@ -1,6 +1,5 @@
 package distributed;
 
-import com.sun.glass.ui.Application;
 import distributed.messages.Packet;
 import distributed.messages.Message;
 import java.io.IOException;
@@ -8,9 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /**
@@ -54,11 +51,9 @@ public class Initiator {
         //Calls for Node Termination.
         for(Agent a : agents.values())
         {
-            if(a.active)
-            {
-                Packet p = Message.getPacket(Message.SET_TERMINATION);
-                sendPacket(p,a);
-            }
+            Packet p = Message.getPacket(Message.SET_TERMINATION);
+            sendPacket(p,a);
+
         }
             
         try {    
@@ -74,25 +69,10 @@ public class Initiator {
             Socket socket = new Socket("localhost", a.PORT);
             output = new ObjectOutputStream(socket.getOutputStream());                        
             output.writeObject(p);
-            a.success = true;
-            a.retry = 0;
             a.lastSent = System.currentTimeMillis();
 
         } catch (IOException ex) {
-            logger.log(Level.INFO, "Cannot Connect to PORT:"+a.PORT);
-            a.retry += 1;
-            if(a.success)
-            {
-                if(a.retry > 6) {
-                    logger.log(Level.WARNING, null, ex);
-                    a.active = false;
-                }
-            } else {
-                if(a.retry > 11) {
-                    logger.log(Level.WARNING, null, ex);
-                    a.active = false;
-                }
-            }
+            logger.log(Level.SEVERE, "Cannot Connect to PORT:"+a.PORT);
         }
     }
     
@@ -164,10 +144,6 @@ public class Initiator {
         public long lastSent;
         
         public final int PORT;
-        
-        public int retry = 0;
-        public boolean success = false;
-        public boolean active = true;
     }
 }
 
