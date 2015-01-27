@@ -14,5 +14,5 @@ public class Packet implements Serializable {
     public String toString()
     {
         return "[Packet "+type+" <"+((pack==null)?"null":pack.toString())+">]";
-    }
+    }    
 }

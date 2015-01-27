@@ -34,7 +34,7 @@ public class Message {
      * @param pv the pivot value.
      * @return the packet object.
      */
-    public static Packet getPacket(int type, Comparable[] a, int pv)
+    public static Packet getPacket(int type, Comparable[] a, Comparable pv)
     {
         Packet p = new Packet();
         p.type = type;
