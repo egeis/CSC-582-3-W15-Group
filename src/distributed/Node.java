@@ -23,7 +23,6 @@ public class Node {
     private static Logger LOGGER;
     
     private boolean shutdown = false;
-    private int status = 1;
         
     private ServerSocket server;
     private ObjectInputStream input;
@@ -35,21 +34,26 @@ public class Node {
     private boolean running = false;
          
     private Node()
-    {
-        status = Message.NODE_STARTING;
-        
+    {        
         try {
             server = new ServerSocket(PORT_NUMBER);
+            
+            System.out.println(server.getInetAddress());
+            System.out.println(server.getLocalPort());
             
             while(!shutdown)
             {
                 Socket socket = server.accept();
+                System.out.println("Accepting...");
                 input = new ObjectInputStream(socket.getInputStream());
                 Packet p = (Packet) input.readObject();
+                
+                System.out.println(p.toString());
+                
                 parsePacket(p);
-                
-                
             }
+            
+            System.out.println("Exiting");
             
             server.close();
         } catch (IOException | ClassNotFoundException ex) {
@@ -76,38 +80,32 @@ public class Node {
         
         switch(type)
         {
-            case Message.GET_STATE:
-                Packet r = new Packet();
-                r.type = status;
-                sendPacket(r);
-                break;
             case Message.SET_INPUT:
                 NodeSetup s = (NodeSetup) p.pack;
                 arr = s.sub;
                 pv = s.pv;
-                status = Message.NODE_READY;
+                System.out.println("Starting...");
+                
+                //DO SOMETHING.
+                        
                 break;
             case Message.SET_GO_LEFT:
-                
+               NodePivot pl = (NodePivot) p.pack;
+               pv = pl.pv;
+               
+               //Do Something
+               
                 break;
             case Message.SET_GO_RIGHT:
+                NodePivot pr = (NodePivot) p.pack;
+                pv = pr.pv;
+               
+                //Do Something
                 
-                break;
-            case Message.SET_START: 
-                if(!running)
-                {
-                    running = true;
-                    
-                    //Handle Starting the quick select somehow.
-                    
-                } else {
-                    //Handle Duplicate start attempt???? or not.
-                }
                 break;
             case Message.SET_TERMINATION:
                 shutdown = true;
             break;
-                
             default:
                 LOGGER.log(Level.SEVERE, null, "Unknown Packet: "+type+" "+p.toString());
         }
@@ -118,10 +116,9 @@ public class Node {
         if(args.length > 0)
         {
             PORT_NUMBER = Integer.parseInt(args[0]);
-        } else {
-            System.out.println("Please include a port number as an argument.");
-            System.out.println("Press any key to quit.");
-            Scanner s = new Scanner(System.in);s.next();
+        } 
+        else 
+        {
             System.exit(1);
         }
         

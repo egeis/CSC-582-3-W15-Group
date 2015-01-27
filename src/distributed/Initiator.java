@@ -1,13 +1,14 @@
 package distributed;
 
-import distributed.messages.Packet;
 import distributed.messages.Message;
+import distributed.messages.Packet;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /**
@@ -21,18 +22,25 @@ public class Initiator {
     private long lastbeat = System.currentTimeMillis();
     
     public final static int SERVER_PORT_NUMBER = 8484;
-    private static HashMap<Integer, Agent> agents = new HashMap<Integer, Agent>();
+    private static List<Integer> ports = new ArrayList<Integer>();
     
     private ServerSocket server;
     private ObjectOutputStream output;
     private ObjectInputStream input;
    
+    /**
+     * 
+     * @param arr 
+     */
     private Initiator(Comparable[] arr)
     {        
         this.arr = arr;
         logger = Logger.getLogger(Initiator.class.getName());
     }
-        
+       
+    /**
+     * 
+     */
     public void start()
     {
         try {
@@ -40,19 +48,49 @@ public class Initiator {
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
-                    
+        
+        //Initial Pivot Valie
+        Comparable pivotValue = arr[(int) (Math.floor(Math.random() * arr.length))];
+        System.out.println(pivotValue);
+        
+        //Create Sup Arrays
+        Packet[] packArray = generateInitMessages(arr, pivotValue);
+        
+        int i = 0;
+        for(Integer a : ports)
+        {
+            Packet p = packArray[i];
+            System.out.println(p.toString());
+            sendPacket(p,a);
+            i++;
+        }
+        
         while(true) 
         {            
-           //Logic for steps 5 - 9
+           //Logic for steps 5-9
+            Socket socket;
+            try {
+                socket = server.accept();
+                input = new ObjectInputStream(socket.getInputStream());
+                Packet p = (Packet) input.readObject();
+                
+            } catch (IOException | ClassNotFoundException ex) {
+                Logger.getLogger(Initiator.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            //Have all nodes sent stuff back?
+                //Then do step 6.
+                //
+            
             
             if(completed) break;
         }
         
         //Calls for Node Termination.
-        for(Agent a : agents.values())
+        for(Integer a : ports)
         {
             Packet p = Message.getPacket(Message.SET_TERMINATION);
-            sendPacket(p,a);
+            sendPacket(p, a);
 
         }
             
@@ -62,89 +100,65 @@ public class Initiator {
             logger.log(Level.SEVERE, null, ex);
         }       
     }
-      
-    private void sendPacket(Packet p, Agent a)
-    {        
-        try {
-            Socket socket = new Socket("localhost", a.PORT);
-            output = new ObjectOutputStream(socket.getOutputStream());                        
-            output.writeObject(p);
-            a.lastSent = System.currentTimeMillis();
-
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Cannot Connect to PORT:"+a.PORT);
-        }
-    }
-    
-    private void parsePacket(Packet p, int port)
+     
+    /**
+     * 
+     * @param sample
+     * @param pV
+     * @return 
+     */
+    public Packet[] generateInitMessages(Comparable[] sample, Comparable pV)
     {
-        int type = p.type;
+        Packet[] packetArray = new Packet[ports.size()];
+        int subArraySize = sample.length / ports.size();
         
-        Agent a = agents.get(port);
-        a.lastRecieved = System.currentTimeMillis();
-        
-        switch(type)
+        int j = 0;
+        for(int i = 0; i < ports.size(); i++)
         {
-            case Message.NODE_WAITING_NEXT:
-                //DO STUFF...
-                break;
-            case Message.NODE_WAITING_INPUT:
-                //DO STUFF...
-                break;
-            case Message.SET_RESULTS:
-                //DO STUFF...
-                break;
+            Comparable[] subArray1 = new Integer[subArraySize];
+            System.arraycopy(arr, j, subArray1, 0, subArraySize);
+            
+            packetArray[i] = Message.getPacket(Message.SET_INPUT, subArray1, pV);
+            j += subArraySize;
         }
+
+        return packetArray; 
     }
     
     /**
      * 
-     * @param k
-     * @return the kth value.
+     * @param p
+     * @param a 
      */
-    public Comparable getKthValue(int k) throws IndexOutOfBoundsException
-    {
-        if(k < 0 || k > (arr.length - 1) )
-        {
-            throw new IndexOutOfBoundsException();
+    private void sendPacket(Packet p, Integer a)
+    {        
+        try {
+            Socket socket = new Socket("localhost", a);
+            output = new ObjectOutputStream(socket.getOutputStream());                        
+            output.writeObject(p);
+            output.flush();
+            socket.close();
+        } catch (IOException ex) {
+            logger.log(Level.SEVERE, "Cannot Connect to PORT:"+a);
         }
-            
-        int indexOfKth = -1;
-        
-        //Find Kth Value...
-        
-        return arr[indexOfKth];
     }
-    
+        
+    /**
+     * 
+     * @param args 
+     */
     public static void main(String[] args)
     {
-        final int LENGTH = 1000;
+        final int LENGTH = 900;
         final int K = 500;
         
         //Remote Workers
-        agents.put(1212, new Agent(1212));
-        agents.put(1213, new Agent(1213));
+        ports.add(1212);
+        ports.add(1213);
+        ports.add(1214);
         
         Integer[] sample = sort.output.TestArray.generate(LENGTH);
         Initiator init = new Initiator(sample);
         init.start();
-        
-        System.out.println("The Kth value (where k = "+K+") is: " + init.getKthValue(LENGTH));
-    }
-    
-    private static class Agent {
-
-        public Agent(int port) {
-            this.PORT = port;
-            this.lastSent = 0;
-            this.lastRecieved = 0;
-        }
-        
-        public long lastRecieved;
-        public long lastSent;
-        
-        public final int PORT;
     }
 }
-
-
