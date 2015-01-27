@@ -31,20 +31,6 @@ public class Node {
     private Comparable pv;
     
     private boolean running = false;
-                
-    private static final String[] STATUS_MESSAGE = { 
-        "NODE_NULL",        //0 - Should never be set to 0.
-        "NODE_STARTING",    //1
-        "NODE_WAITING",     //2
-        "NODE_READY",       //3
-        "NODE_BUSY",        //4
-        "NODE_ERROR",       //5
-        "NODE_UNKNOWN",     //6 - Unused
-        "NODE_UNKNOWN",     //7 - Unused
-        "NODE_UNKNOWN",     //8 - Unused
-        "NODE_UNKNOWN",     //9 - Unused
-        "NODE_SHUTDOWN"     //10
-    }; 
          
     private Node()
     {
@@ -60,6 +46,8 @@ public class Node {
                 input = new ObjectInputStream(socket.getInputStream());
                 Packet p = (Packet) input.readObject();
                 parsePacket(p);
+                
+                
             }
             
             server.close();
@@ -68,7 +56,7 @@ public class Node {
         }
     }
     
-    private synchronized void sendPacket(Packet p)
+    private void sendPacket(Packet p)
     {        
         try {
             Socket out = new Socket("localhost", INIT_PORT_NUMBER);
