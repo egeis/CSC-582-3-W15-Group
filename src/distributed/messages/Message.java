@@ -8,18 +8,20 @@ import distributed.messages.store.*;
  */
 public class Message {
     //Node STATE Messages
-    public final static int NODE_STARTING = 1;   // NODE STATE is starting.
-    public final static int NODE_WAITING = 2;    // NODE STATE is waiting for input.
-    public final static int NODE_READY =  3;     // NODE STATE is ready to start. (****NOT Necessary****)
-    public final static int NODE_BUSY = 4;       // NODE STATE is busy.
-    public final static int NODE_ERROR = 5;      // NODE STATE for an error.
-    public final static int NODE_SHUTDOWN = 10;  // NODE STATE is terminating.
+    public final static int NODE_STARTING = 1;          // NODE STATE is starting.
+    public final static int NODE_WAITING_INPUT = 2;     // NODE STATE is waiting for input.
+    public final static int NODE_READY =  3;            // NODE STATE is ready to start. (****NOT Necessary****)
+    public final static int NODE_BUSY = 4;              // NODE STATE is busy.
+    public final static int NODE_ERROR = 5;             // NODE STATE for an error.
+    public final static int NODE_WAITING_NEXT = 6;      // Node STATE is waiting for next step.
+    public final static int NODE_SHUTDOWN = 10;         // NODE STATE is terminating.
     
     //SETTER Messages
     public final static int SET_INPUT = 11;      //Setup the input array
     public final static int SET_START = 12;      //Start Working..
     public final static int SET_GO_LEFT = 13;    //GO LEFT
     public final static int SET_GO_RIGHT = 14;   //GO Right
+    public final static int SET_RESULTS = 15;
     public final static int SET_TERMINATION = 20;//Starts the Node Shutdown
     
     //GETTER Messages
