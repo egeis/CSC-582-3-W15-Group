@@ -2,6 +2,7 @@ package distributed;
 
 import distributed.messages.Message;
 import distributed.messages.Packet;
+import distributed.messages.store.NodeResults;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -27,6 +28,8 @@ public class Initiator {
     private ServerSocket server;
     private ObjectOutputStream output;
     private ObjectInputStream input;
+    
+    private static int K;
    
     /**
      * 
@@ -53,8 +56,8 @@ public class Initiator {
         Comparable pivotValue = arr[(int) (Math.floor(Math.random() * arr.length))];
         System.out.println(pivotValue);
         
-        //Create Sup Arrays
-        Packet[] packArray = generateInitMessages(arr, pivotValue);
+        //Create Sub Arrays
+        Packet[] packArray = generateInitMessages(pivotValue);
         
         int i = 0;
         for(Integer a : ports)
@@ -65,24 +68,47 @@ public class Initiator {
             i++;
         }
         
+        NodeResults[] nr = new NodeResults[ports.size()];
+        int counter = 0;
+        
         while(true) 
-        {            
+        {       
            //Logic for steps 5-9
             Socket socket;
+            Packet p = new Packet();
+            
             try {
                 socket = server.accept();
+                
                 input = new ObjectInputStream(socket.getInputStream());
-                Packet p = (Packet) input.readObject();
+                p = (Packet) input.readObject();
                 
             } catch (IOException | ClassNotFoundException ex) {
                 Logger.getLogger(Initiator.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-            //Have all nodes sent stuff back?
-                //Then do step 6.
-                //
+            nr[counter] = (NodeResults) p.pack;
             
+            counter++;
             
+            if(counter >= ports.size() )
+            {
+                int left = 0;
+                int right = 0;
+                
+                for (int j = 0; j < nr.length; j++)
+                {
+                    left += nr[j].leftValues;
+                    right += nr[j].rightValues;
+                }
+                
+                if (K < left)
+                   //generateReply(Message.SET_GO_LEFT, ); 
+                
+                counter = 0;
+                
+                //SEND STUFF TO NODEs
+            }            
             if(completed) break;
         }
         
@@ -107,10 +133,10 @@ public class Initiator {
      * @param pV
      * @return 
      */
-    public Packet[] generateInitMessages(Comparable[] sample, Comparable pV)
+    public Packet[] generateInitMessages(Comparable pV)
     {
         Packet[] packetArray = new Packet[ports.size()];
-        int subArraySize = sample.length / ports.size();
+        int subArraySize = arr.length / ports.size();
         
         int j = 0;
         for(int i = 0; i < ports.size(); i++)
@@ -123,6 +149,20 @@ public class Initiator {
         }
 
         return packetArray; 
+    }
+    
+    public Packet[] generateReply(int type, Comparable pivotValue)
+    {
+        
+    }
+    
+    public Comparable choosePivot(int type, NodeResults[] nr)
+    {
+        if (type == Message.SET_GO_LEFT)
+            return nr[0].leftValues;
+        
+        else
+            return nr[0].rightValues;
     }
     
     /**
@@ -150,7 +190,7 @@ public class Initiator {
     public static void main(String[] args)
     {
         final int LENGTH = 900;
-        final int K = 500;
+        K = 500;
         
         //Remote Workers
         ports.add(1212);
