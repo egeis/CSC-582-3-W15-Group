@@ -26,6 +26,7 @@ public class Message {
     
     //GETTER Messages
     public final static int GET_STATE = 21;      //Requests NODE Reply with STATE.
+    public final static int GET_VALUE = 22;      //Requests the last value from all nodes.
         
     /**
      * Gets a Packet containing a message type, and Node Setup information.
@@ -55,7 +56,7 @@ public class Message {
      * @param storeValue
      * @return 
      */
-    public static Packet getPacket(int type, int leftValues, int rightValues, int storeValue)
+    public static Packet getPacket(int type, int leftValues, int rightValues, boolean isDone)
     {
         Packet p = new Packet();
         p.type = type;
@@ -63,9 +64,26 @@ public class Message {
         NodeResults r = new NodeResults();
         r.leftValues = leftValues;
         r.rightValues = rightValues;
-        r.storeValue = storeValue;
         
         p.pack = r;
+        
+        return p;
+    }
+    
+    /**
+     * 
+     * @param type
+     * @param pv
+     * @return Packet
+     */
+    public static Packet getPacket(int type, Comparable pv)
+    {
+        Packet p = new Packet();
+        p.type = type;
+        
+        NodePivot pivot = new NodePivot();
+        pivot.pv = pv;
+        p.pack = pivot;
         
         return p;
     }
