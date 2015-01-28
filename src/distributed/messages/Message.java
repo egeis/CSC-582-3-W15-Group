@@ -56,7 +56,7 @@ public class Message {
      * @param storeValue
      * @return 
      */
-    public static Packet getPacket(int type, int leftValues, int rightValues, boolean isDone)
+    public static Packet getPacket(int type, int leftValues, int rightValues)
     {
         Packet p = new Packet();
         p.type = type;

@@ -53,7 +53,6 @@ public class Node {
                 System.out.println(p.toString());
                 
                 parsePacket(p);
-                
             }
             
             System.out.println("Exiting");
@@ -79,25 +78,21 @@ public class Node {
 
      /**
       * Partition
-      * @param pivotValue
       * @return the store index.
       */
-    public int partition(int pivotValue)
-	{
-            int storeIndex = left;
+    public void partition()
+    {
+        int storeIndex = left;
 
-            for(int i = left; i <= right; i++)
+        for(int i = left; i <= right; i++)
+        {
+            if (arr[i].compareTo(pv) == -1)
             {
-                if (arr[i].compareTo(pivotValue) == -1)
-                {
-                    swap(storeIndex, i);
-                    storeIndex++;
-                }
+                swap(storeIndex, i);
+                storeIndex++;
             }
-
-            // return index of first value greater than pivot value
-            return storeIndex;
-	}
+        }
+    }
     
     /**
      * Sends a packet of data to the initiator.
@@ -119,6 +114,7 @@ public class Node {
     private void parsePacket(Packet p)
     {
         int type = p.type;
+        Packet reply;
         
         switch(type)
         {
@@ -127,22 +123,28 @@ public class Node {
                 arr = s.sub;
                 pv = s.pv;
                 System.out.println("Starting...");
+                                
+                partition();
+                reply = Message.getPacket(Message.SET_RESULTS, left, right);
+                sendPacket(reply);
                 
-                //DO SOMETHING.
-                        
                 break;
             case Message.SET_GO_LEFT:
                NodePivot pl = (NodePivot) p.pack;
                pv = pl.pv;
                
-               //Do Something
+                partition();
+                reply = Message.getPacket(Message.SET_RESULTS, left, right);
+                sendPacket(reply);
                
                 break;
             case Message.SET_GO_RIGHT:
                 NodePivot pr = (NodePivot) p.pack;
                 pv = pr.pv;
                
-                //Do Something
+                partition();
+                reply = Message.getPacket(Message.SET_RESULTS, left, right);
+                sendPacket(reply);
                 
                 break;
             case Message.SET_TERMINATION:
