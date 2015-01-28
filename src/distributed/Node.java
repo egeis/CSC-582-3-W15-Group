@@ -34,8 +34,6 @@ public class Node {
     private int right = 0;
     private int storeIndex = 0;
     
-    private boolean running = false;
-         
     private Node()
     {        
         try {
@@ -120,7 +118,7 @@ public class Node {
                 NodeSetup s = (NodeSetup) p.pack;
                 arr = s.sub;
                 pv = s.pv;
-                System.out.println("Starting...");
+                System.out.println("Starting...pv:"+pv);
                 
                 right = arr.length - 1;
                 partition();
@@ -133,6 +131,7 @@ public class Node {
                pv = pl.pv;
                               
                right = storeIndex;
+               System.out.println("SET_GO_LEFT...right:"+storeIndex+"PV:"+pv);
                
                 partition();
                 reply = Message.getPacket(Message.SET_RESULTS, left, right);
@@ -142,8 +141,10 @@ public class Node {
             case Message.SET_GO_RIGHT:
                 NodePivot pr = (NodePivot) p.pack;
                 pv = pr.pv;
+                
                 left = storeIndex;
-               
+                System.out.println("SET_GO_RIGHT...left:"+storeIndex+"PV:"+pv);
+                
                 partition();
                 reply = Message.getPacket(Message.SET_RESULTS, left, right);
                 sendPacket(reply);
