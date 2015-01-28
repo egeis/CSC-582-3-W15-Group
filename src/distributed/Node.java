@@ -47,13 +47,10 @@ public class Node {
             while(!shutdown)
             {
                 Socket socket = server.accept();
-                System.out.println("Accepting...");
                 input = new ObjectInputStream(socket.getInputStream());
                 Packet p = (Packet) input.readObject();
-                
-                System.out.println(p.toString());
-                
                 parsePacket(p);
+                socket.close();
             }
             
             System.out.println("Exiting");
@@ -125,7 +122,7 @@ public class Node {
                 pv = s.pv;
                 System.out.println("Starting...");
                 
-                right = arr.length;
+                right = arr.length - 1;
                 partition();
                 reply = Message.getPacket(Message.SET_RESULTS, left, right);
                 sendPacket(reply);
@@ -134,6 +131,7 @@ public class Node {
             case Message.SET_GO_LEFT:
                NodePivot pl = (NodePivot) p.pack;
                pv = pl.pv;
+                              
                right = storeIndex;
                
                 partition();

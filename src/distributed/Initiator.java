@@ -85,7 +85,7 @@ public class Initiator {
                 
                 input = new ObjectInputStream(socket.getInputStream());
                 p = (Packet) input.readObject();
-                
+                socket.close();
             } catch (IOException | ClassNotFoundException ex) {
                 Logger.getLogger(Initiator.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -145,7 +145,7 @@ public class Initiator {
                 
                 input = new ObjectInputStream(socket.getInputStream());
                 p = (Packet) input.readObject();
-                
+                socket.close();
             } catch (IOException | ClassNotFoundException ex) {
                 Logger.getLogger(Initiator.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -169,6 +169,9 @@ public class Initiator {
             }
         }
         
+        System.out.println(originalK + "-th value is " + kValue.toString());
+        logger.log(Level.INFO, originalK + "-th value is " + kValue.toString());
+                
         //Calls for Node Termination.
         for(Integer a : ports)
         {
@@ -181,9 +184,6 @@ public class Initiator {
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }    
-        
-        System.out.println(originalK + "-th value is " + kValue.toString());
-        logger.log(Level.INFO, originalK + "-th value is " + kValue.toString());
     }
      
     /**
@@ -249,8 +249,8 @@ public class Initiator {
         
         //Remote Workers
         ports.add(1212);
-        ports.add(1213);
-        ports.add(1214);
+        //ports.add(1213);
+        //ports.add(1214);
         
         Integer[] sample = sort.output.TestArray.generate(LENGTH);
         Initiator init = new Initiator(sample);
