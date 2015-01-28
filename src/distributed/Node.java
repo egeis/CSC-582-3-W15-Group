@@ -9,7 +9,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,6 +30,9 @@ public class Node {
     private Comparable[] arr;
     private Comparable pv;
     
+    private int left = 0;
+    private int right = 0;
+    
     private boolean running = false;
          
     private Node()
@@ -51,6 +53,7 @@ public class Node {
                 System.out.println(p.toString());
                 
                 parsePacket(p);
+                
             }
             
             System.out.println("Exiting");
@@ -61,6 +64,45 @@ public class Node {
         }
     }
     
+    /**
+     * Swaps two values in the array.
+     * @param x
+     * @param y
+     */
+     public void swap(int x, int y)
+    {
+        Comparable temp = arr[y];
+
+        arr[y] = arr[x];
+        arr[x] = temp;
+    }
+
+     /**
+      * Partition
+      * @param pivotValue
+      * @return the store index.
+      */
+    public int partition(int pivotValue)
+	{
+            int storeIndex = left;
+
+            for(int i = left; i <= right; i++)
+            {
+                if (arr[i].compareTo(pivotValue) == -1)
+                {
+                    swap(storeIndex, i);
+                    storeIndex++;
+                }
+            }
+
+            // return index of first value greater than pivot value
+            return storeIndex;
+	}
+    
+    /**
+     * Sends a packet of data to the initiator.
+     * @param p the packet.
+     */
     private void sendPacket(Packet p)
     {        
         try {
