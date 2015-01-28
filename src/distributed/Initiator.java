@@ -2,6 +2,7 @@ package distributed;
 
 import distributed.messages.Message;
 import distributed.messages.Packet;
+import distributed.messages.store.NodePivot;
 import distributed.messages.store.NodeResults;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -30,6 +31,7 @@ public class Initiator {
     private ObjectInputStream input;
     
     private static int K;
+    private static int originalK;
    
     /**
      * 
@@ -59,13 +61,13 @@ public class Initiator {
         //Create Sub Arrays
         Packet[] packArray = generateInitMessages(pivotValue);
         
-        int i = 0;
+        int index = 0;
         for(Integer a : ports)
         {
-            Packet p = packArray[i];
+            Packet p = packArray[index];
             System.out.println(p.toString());
             sendPacket(p,a);
-            i++;
+            index++;
         }
         
         NodeResults[] nr = new NodeResults[ports.size()];
@@ -76,6 +78,7 @@ public class Initiator {
            //Logic for steps 5-9
             Socket socket;
             Packet p = new Packet();
+            Packet replyPacket = new Packet();
             
             try {
                 socket = server.accept();
@@ -91,7 +94,7 @@ public class Initiator {
             
             counter++;
             
-            if(counter >= ports.size() )
+            if(counter >= ports.size())
             {
                 int left = 0;
                 int right = 0;
@@ -102,8 +105,25 @@ public class Initiator {
                     right += nr[j].rightValues;
                 }
                 
-                if (K < left)
-                   //generateReply(Message.SET_GO_LEFT, ); 
+                if (K == 1)
+                {
+                    replyPacket = Message.getPacket(Message.GET_VALUE);
+                    completed = true;
+                }
+                
+                else if (K <= left)
+                    replyPacket = Message.getPacket(Message.SET_GO_LEFT, nr[0].leftValues);
+                   
+                else
+                {
+                    replyPacket = Message.getPacket(Message.SET_GO_RIGHT, nr[0].rightValues);
+                    K -= left;
+                }
+                
+                for (int i = 0; i < ports.size(); i++)
+                {
+                    sendPacket(replyPacket, ports.get(i));
+                }
                 
                 counter = 0;
                 
@@ -112,19 +132,58 @@ public class Initiator {
             if(completed) break;
         }
         
+        counter = 0;
+        NodePivot[] np = new NodePivot[ports.size()];
+        
+        while(true) 
+        {  
+            Socket socket;
+            Packet p = new Packet();
+            
+            try {
+                socket = server.accept();
+                
+                input = new ObjectInputStream(socket.getInputStream());
+                p = (Packet) input.readObject();
+                
+            } catch (IOException | ClassNotFoundException ex) {
+                Logger.getLogger(Initiator.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            np[counter] = (NodePivot) p.pack;
+            
+            counter++;
+            
+            if(counter >= ports.size()) 
+                break;
+        }
+        
+        Comparable kValue = null;
+        
+        for(int i = 0; i < np.length; i++)
+        {
+            if(np[i].pv != null)
+            {
+                kValue = np[i].pv;
+                break;
+            }
+        }
+        
         //Calls for Node Termination.
         for(Integer a : ports)
         {
             Packet p = Message.getPacket(Message.SET_TERMINATION);
             sendPacket(p, a);
-
         }
             
         try {    
             server.close(); //Close the Server, causes Socket to throw Exception.
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
-        }       
+        }    
+        
+        System.out.println(originalK + "-th value is " + kValue.toString());
+        logger.log(Level.INFO, originalK + "-th value is " + kValue.toString());
     }
      
     /**
@@ -151,11 +210,6 @@ public class Initiator {
         return packetArray; 
     }
     
-    public Packet[] generateReply(int type, Comparable pivotValue)
-    {
-        
-    }
-    
     public Comparable choosePivot(int type, NodeResults[] nr)
     {
         if (type == Message.SET_GO_LEFT)
@@ -170,16 +224,16 @@ public class Initiator {
      * @param p
      * @param a 
      */
-    private void sendPacket(Packet p, Integer a)
+    private void sendPacket(Packet p, Integer port)
     {        
         try {
-            Socket socket = new Socket("localhost", a);
+            Socket socket = new Socket("localhost", port);
             output = new ObjectOutputStream(socket.getOutputStream());                        
             output.writeObject(p);
             output.flush();
             socket.close();
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Cannot Connect to PORT:"+a);
+            logger.log(Level.SEVERE, "Cannot Connect to PORT:"+port);
         }
     }
         
@@ -190,7 +244,8 @@ public class Initiator {
     public static void main(String[] args)
     {
         final int LENGTH = 900;
-        K = 500;
+        originalK = 500;
+        K = originalK;
         
         //Remote Workers
         ports.add(1212);
