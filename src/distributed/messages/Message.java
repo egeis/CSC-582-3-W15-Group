@@ -22,6 +22,8 @@ public class Message {
     public final static int SET_GO_LEFT = 13;    //GO LEFT
     public final static int SET_GO_RIGHT = 14;   //GO Right
     public final static int SET_RESULTS = 15;
+    public final static int SET_KVALUE = 16;
+    public final static int SET_SAMEVALUE = 17;
     public final static int SET_TERMINATION = 20;//Starts the Node Shutdown
     
     //GETTER Messages

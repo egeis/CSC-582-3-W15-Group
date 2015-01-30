@@ -80,35 +80,58 @@ public class Node {
       * Partition
       * @return the store index.
       */
-    public void partition()
+    public boolean partition()
     {
-        storeIndex = left;
+        boolean same = false;
         
-        for(int i = left; i <= right; i++)
+        same = checkSameValue();
+        
+        if(!checkSameValue())
         {
-            if (arr[i].compareTo(pv) == -1)
+            storeIndex = left;
+
+            for(int i = left; i <= right; i++)
             {
-                swap(storeIndex, i);
-                storeIndex++;
+                if (arr[i].compareTo(pv) == -1)
+                {
+                    swap(storeIndex, i);
+                    storeIndex++;
+                }
             }
+
+            recommendLeft = null;
+            recommendRight = null;
+
+            if((storeIndex - left) > 0) 
+            {
+                recommendLeft = arr[(int)(left + (Math.floor(Math.random() * (storeIndex - left))))];
+                System.out.println("left recommendation: " + recommendLeft);
+            }
+
+            if((right - storeIndex + 1) > 0)
+            {
+                recommendRight = arr[(int)(storeIndex + (Math.floor(Math.random() * (right - storeIndex + 1))))];
+                System.out.println("right recommendation: " + recommendRight);
+            }
+
+            System.out.println("store index: " + storeIndex);
         }
         
-        recommendLeft = null;
-        recommendRight = null;
+        return same;
+    }
+    
+    private boolean checkSameValue()
+    {
+        boolean same = true;
+        Comparable temp = arr[left];
         
-        if((storeIndex - left) > 0) 
+        for (int i = left; i < arr.length; i++)
         {
-            recommendLeft = arr[(int)(Math.floor(Math.random() * (storeIndex - left)))];
-            System.out.println("left recommendation: " + recommendLeft);
+            if (arr[i] != temp)
+                same = false;
         }
         
-        if((right - storeIndex + 1) > 0)
-        {
-            recommendRight = arr[(int)((storeIndex - 1) + (Math.floor(Math.random() * (right - storeIndex + 1))))];
-            System.out.println("right recommendation: " + recommendRight);
-        }
-        
-        System.out.println("store index: " + storeIndex);
+        return same;
     }
     
     /**
@@ -170,6 +193,15 @@ public class Node {
                 
                 partition();
                 reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
+                sendPacket(reply);
+                
+                break;
+            case Message.GET_VALUE:
+                if (left == arr.length)
+                    reply = Message.getPacket(Message.SET_KVALUE, null);
+             
+                else
+                    reply = Message.getPacket(Message.SET_KVALUE, arr[left]);
                 sendPacket(reply);
                 
                 break;

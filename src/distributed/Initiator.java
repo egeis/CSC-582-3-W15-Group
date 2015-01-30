@@ -74,6 +74,7 @@ public class Initiator {
         
         NodeResults[] nr = new NodeResults[ports.size()];
         int counter = 0;
+        boolean same = true;
         
         while(true) 
         {       
@@ -92,8 +93,10 @@ public class Initiator {
                 Logger.getLogger(Initiator.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-            nr[counter] = (NodeResults) p.pack;
+            if (p.type != Message.SET_SAMEVALUE)
+                same = false;
             
+            nr[counter] = (NodeResults) p.pack;
             counter++;
             
             if(counter >= ports.size())
@@ -107,7 +110,7 @@ public class Initiator {
                     right += nr[j].rightValues;
                 }
                 
-                if (K == 1)
+                if (K == 1 || same)
                 {
                     replyPacket = Message.getPacket(Message.GET_VALUE);
                     completed = true;
@@ -265,11 +268,11 @@ public class Initiator {
     public static void main(String[] args)
     {
         final int LENGTH = 10;
-        originalK = 5;
+        originalK = 4;
         K = originalK;
         
         //Remote Workers
-        ports.add(1212);
+        ports.add(1213);
         //ports.add(1213);
         //ports.add(1214);
         
