@@ -24,7 +24,7 @@ public class TestArray {
         
          /*Create the Random Array.*/
         for(int i = 0; i < length; i++) {
-            test[i] = rand.nextInt();
+            test[i] = (int) (rand.nextDouble() * 10);
         }
                 
         return test;
