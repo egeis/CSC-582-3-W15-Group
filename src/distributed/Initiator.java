@@ -243,8 +243,8 @@ public class Initiator {
      */
     public static void main(String[] args)
     {
-        final int LENGTH = 900;
-        originalK = 500;
+        final int LENGTH = 20;
+        originalK = 5;
         K = originalK;
         
         //Remote Workers
