@@ -9,4 +9,7 @@ import java.io.Serializable;
 public class NodeResults implements Serializable {  
     public int leftValues = -1;
     public int rightValues = -1;
+    public Comparable recRight = null;
+    public Comparable recLeft = null;
+           
 }

@@ -56,7 +56,7 @@ public class Message {
      * @param storeValue
      * @return 
      */
-    public static Packet getPacket(int type, int leftValues, int rightValues)
+    public static Packet getPacket(int type, int leftValues, int rightValues, Comparable recRight, Comparable recLeft)
     {
         Packet p = new Packet();
         p.type = type;
@@ -64,6 +64,8 @@ public class Message {
         NodeResults r = new NodeResults();
         r.leftValues = leftValues;
         r.rightValues = rightValues;
+        r.recRight = recRight;
+        r.recLeft = recLeft;
         
         p.pack = r;
         
