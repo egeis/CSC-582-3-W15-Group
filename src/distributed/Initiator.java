@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,7 +56,8 @@ public class Initiator {
         }
         
         //Initial Pivot Valie
-        Comparable pivotValue = arr[(int) (Math.floor(Math.random() * arr.length))];
+        //Comparable pivotValue = arr[(int) (Math.floor(Math.random() * arr.length))];
+        Comparable pivotValue = arr[0];
         System.out.println(pivotValue);
         
         //Create Sub Arrays
@@ -112,11 +114,13 @@ public class Initiator {
                 }
                 
                 else if (K <= left)
-                    replyPacket = Message.getPacket(Message.SET_GO_LEFT, nr[0].leftValues);
-                   
+                {
+                    replyPacket = Message.getPacket(Message.SET_GO_LEFT, choosePivotValue(nr, true));
+                }
+                
                 else
                 {
-                    replyPacket = Message.getPacket(Message.SET_GO_RIGHT, nr[0].rightValues);
+                    replyPacket = Message.getPacket(Message.SET_GO_RIGHT, choosePivotValue(nr, false));
                     K -= left;
                 }
                 
@@ -186,6 +190,23 @@ public class Initiator {
         }    
     }
      
+    public Comparable choosePivotValue(NodeResults[] nResults, boolean left)
+    {
+        for (int i = 0; i < nResults.length; i++)
+        {
+            if (left)
+            {
+                if (nResults[i].recLeft != null)
+                    return nResults[i].recLeft;
+            }
+            
+            else
+                if (nResults[i].recRight != null)
+                    return nResults[i].recRight;
+        }
+        
+        return null;
+    }
     /**
      * 
      * @param sample
@@ -243,7 +264,7 @@ public class Initiator {
      */
     public static void main(String[] args)
     {
-        final int LENGTH = 20;
+        final int LENGTH = 10;
         originalK = 5;
         K = originalK;
         
@@ -252,8 +273,10 @@ public class Initiator {
         //ports.add(1213);
         //ports.add(1214);
         
-        Integer[] sample = sort.output.TestArray.generate(LENGTH);
+        //Integer[] sample = sort.output.TestArray.generate(LENGTH);
+        Integer[] sample = {5, 9, 1, 7, 2, 5};
         Initiator init = new Initiator(sample);
+        System.out.println(Arrays.toString(sample));
         init.start();
     }
 }

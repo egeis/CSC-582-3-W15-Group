@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,6 +34,9 @@ public class Node {
     private int left = 0;
     private int right = 0;
     private int storeIndex = 0;
+    
+    private Comparable recommendLeft = null;
+    private Comparable recommendRight = null;
     
     private Node()
     {        
@@ -79,7 +83,7 @@ public class Node {
     public void partition()
     {
         storeIndex = left;
-
+        
         for(int i = left; i <= right; i++)
         {
             if (arr[i].compareTo(pv) == -1)
@@ -88,6 +92,23 @@ public class Node {
                 storeIndex++;
             }
         }
+        
+        recommendLeft = null;
+        recommendRight = null;
+        
+        if((storeIndex - left) > 0) 
+        {
+            recommendLeft = arr[(int)(Math.floor(Math.random() * (storeIndex - left)))];
+            System.out.println("left recommendation: " + recommendLeft);
+        }
+        
+        if((right - storeIndex + 1) > 0)
+        {
+            recommendRight = arr[(int)((storeIndex - 1) + (Math.floor(Math.random() * (right - storeIndex + 1))))];
+            System.out.println("right recommendation: " + recommendRight);
+        }
+        
+        System.out.println("store index: " + storeIndex);
     }
     
     /**
@@ -118,11 +139,12 @@ public class Node {
                 NodeSetup s = (NodeSetup) p.pack;
                 arr = s.sub;
                 pv = s.pv;
+                System.out.println(Arrays.toString(arr));
                 System.out.println("Starting...pv:"+pv);
                 
                 right = arr.length - 1;
                 partition();
-                reply = Message.getPacket(Message.SET_RESULTS, left, right);
+                reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
                 sendPacket(reply);
                 
                 break;
@@ -132,9 +154,9 @@ public class Node {
                               
                right = storeIndex;
                System.out.println("SET_GO_LEFT...right:"+storeIndex+"PV:"+pv);
-               
+               System.out.println(Arrays.toString(arr));
                 partition();
-                reply = Message.getPacket(Message.SET_RESULTS, left, right);
+                reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
                 sendPacket(reply);
                
                 break;
@@ -144,9 +166,10 @@ public class Node {
                 
                 left = storeIndex;
                 System.out.println("SET_GO_RIGHT...left:"+storeIndex+"PV:"+pv);
+                System.out.println(Arrays.toString(arr));
                 
                 partition();
-                reply = Message.getPacket(Message.SET_RESULTS, left, right);
+                reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
                 sendPacket(reply);
                 
                 break;
