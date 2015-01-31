@@ -11,5 +11,4 @@ public class NodeResults implements Serializable {
     public int rightValues = -1;
     public Comparable recRight = null;
     public Comparable recLeft = null;
-           
 }
