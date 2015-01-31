@@ -12,12 +12,14 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import sort.tasks.Base;
 /**
  *
  */
-public class Initiator {
+public class Initiator extends Base {
     private static Logger logger;
 
     private Comparable[] arr;    
@@ -96,6 +98,7 @@ public class Initiator {
             if (p.type != Message.SET_SAMEVALUE)
                 same = false;
             
+            
             nr[counter] = (NodeResults) p.pack;
             counter++;
             
@@ -104,27 +107,31 @@ public class Initiator {
                 int left = 0;
                 int right = 0;
                 
-                for (int j = 0; j < nr.length; j++)
-                {
-                    left += nr[j].leftValues;
-                    right += nr[j].rightValues;
-                }
-                
                 if (K == 1 || same)
                 {
                     replyPacket = Message.getPacket(Message.GET_VALUE);
                     completed = true;
                 }
                 
-                else if (K <= left)
-                {
-                    replyPacket = Message.getPacket(Message.SET_GO_LEFT, choosePivotValue(nr, true));
-                }
-                
                 else
                 {
-                    replyPacket = Message.getPacket(Message.SET_GO_RIGHT, choosePivotValue(nr, false));
-                    K -= left;
+                    for (int j = 0; j < nr.length; j++)
+                    {
+
+                        left += nr[j].leftValues;
+                        right += nr[j].rightValues;
+                    }
+                    
+                    if (K <= left)
+                    {
+                        replyPacket = Message.getPacket(Message.SET_GO_LEFT, choosePivotValue(nr, true));
+                    }
+
+                    else
+                    {
+                        replyPacket = Message.getPacket(Message.SET_GO_RIGHT, choosePivotValue(nr, false));
+                        K -= left;
+                    }
                 }
                 
                 for (int i = 0; i < ports.size(); i++)
@@ -133,7 +140,7 @@ public class Initiator {
                 }
                 
                 counter = 0;
-                
+                same = true;
                 //SEND STUFF TO NODEs
             }            
             if(completed) break;
@@ -267,8 +274,8 @@ public class Initiator {
      */
     public static void main(String[] args)
     {
-        final int LENGTH = 10;
-        originalK = 4;
+        final int LENGTH = 1000;
+        originalK = 500;
         K = originalK;
         
         //Remote Workers
@@ -276,10 +283,12 @@ public class Initiator {
         //ports.add(1213);
         //ports.add(1214);
         
-        //Integer[] sample = sort.output.TestArray.generate(LENGTH);
-        Integer[] sample = {5, 9, 1, 7, 2, 5};
+        Integer[] sample = sort.output.TestArray.generate(LENGTH);
+        //Integer[] sample = {5, 9, 1, 7, 2, 5};
         Initiator init = new Initiator(sample);
-        System.out.println(Arrays.toString(sample));
+        Map<Comparable, Integer> mp = init.getFrequency(sample);
+        System.out.println(mp.toString());
+        //System.out.println(Arrays.toString(sample));
         init.start();
     }
 }

@@ -117,6 +117,12 @@ public class Node {
             System.out.println("store index: " + storeIndex);
         }
         
+        if (same)
+            System.out.println("same!");
+        
+        else
+            System.out.println("not same!");
+        
         return same;
     }
     
@@ -125,7 +131,10 @@ public class Node {
         boolean same = true;
         Comparable temp = arr[left];
         
-        for (int i = left; i < arr.length; i++)
+        //System.out.println("left is............" + left);
+        //System.out.println("right is............" + right);
+        
+        for (int i = left; i <= right; i++)
         {
             if (arr[i] != temp)
                 same = false;
@@ -162,8 +171,8 @@ public class Node {
                 NodeSetup s = (NodeSetup) p.pack;
                 arr = s.sub;
                 pv = s.pv;
-                System.out.println(Arrays.toString(arr));
-                System.out.println("Starting...pv:"+pv);
+                //System.out.println(Arrays.toString(arr));
+                //System.out.println("Starting...pv:"+pv);
                 
                 right = arr.length - 1;
                 
@@ -174,14 +183,16 @@ public class Node {
                     reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
                 }
                 
+                sendPacket(reply);
+                
                 break;
             case Message.SET_GO_LEFT:
                 NodePivot pl = (NodePivot) p.pack;
                 pv = pl.pv;
                               
-                right = storeIndex;
+                right = storeIndex - 1;
                 System.out.println("SET_GO_LEFT...right:"+storeIndex+"PV:"+pv);
-                System.out.println(Arrays.toString(arr));
+                //System.out.println(Arrays.toString(arr));
                 
                 if(partition())
                 {
@@ -199,7 +210,7 @@ public class Node {
                 
                 left = storeIndex;
                 System.out.println("SET_GO_RIGHT...left:"+storeIndex+"PV:"+pv);
-                System.out.println(Arrays.toString(arr));
+                //System.out.println(Arrays.toString(arr));
                 
                 if(partition())
                 {
@@ -208,6 +219,8 @@ public class Node {
                     reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
                 }
                 
+                sendPacket(reply);
+                
                 break;
             case Message.GET_VALUE:
                 if (left == arr.length)
@@ -215,6 +228,7 @@ public class Node {
              
                 else
                     reply = Message.getPacket(Message.SET_KVALUE, arr[left]);
+                
                 sendPacket(reply);
                 
                 break;
