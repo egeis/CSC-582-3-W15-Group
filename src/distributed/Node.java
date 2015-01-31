@@ -166,20 +166,30 @@ public class Node {
                 System.out.println("Starting...pv:"+pv);
                 
                 right = arr.length - 1;
-                partition();
-                reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
-                sendPacket(reply);
+                
+                if(partition())
+                {
+                    reply = Message.getPacket(Message.SET_SAMEVALUE);
+                } else {
+                    reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
+                }
                 
                 break;
             case Message.SET_GO_LEFT:
-               NodePivot pl = (NodePivot) p.pack;
-               pv = pl.pv;
+                NodePivot pl = (NodePivot) p.pack;
+                pv = pl.pv;
                               
-               right = storeIndex;
-               System.out.println("SET_GO_LEFT...right:"+storeIndex+"PV:"+pv);
-               System.out.println(Arrays.toString(arr));
-                partition();
-                reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
+                right = storeIndex;
+                System.out.println("SET_GO_LEFT...right:"+storeIndex+"PV:"+pv);
+                System.out.println(Arrays.toString(arr));
+                
+                if(partition())
+                {
+                    reply = Message.getPacket(Message.SET_SAMEVALUE);
+                } else {
+                    reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
+                }
+                
                 sendPacket(reply);
                
                 break;
@@ -191,9 +201,12 @@ public class Node {
                 System.out.println("SET_GO_RIGHT...left:"+storeIndex+"PV:"+pv);
                 System.out.println(Arrays.toString(arr));
                 
-                partition();
-                reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
-                sendPacket(reply);
+                if(partition())
+                {
+                    reply = Message.getPacket(Message.SET_SAMEVALUE);
+                } else {
+                    reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
+                }
                 
                 break;
             case Message.GET_VALUE:
