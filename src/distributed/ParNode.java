@@ -38,6 +38,8 @@ public class ParNode {
     private Comparable recommendLeft = null;
     private Comparable recommendRight = null;
     
+    private WorkerThread[] workArray = null;
+    
     private ParNode()
     {        
         try {
@@ -80,48 +82,43 @@ public class ParNode {
       * Partition
       * @return the store index.
       */
-    public boolean partition()
+    public boolean partition(boolean initialRun) throws InterruptedException
     {
-        boolean same = false;
+        String same;
         
-        same = checkSameValue();
-        
-        if(!checkSameValue())
-        {
-            storeIndex = left;
-
-            for(int i = left; i <= right; i++)
-            {
-                if (arr[i].compareTo(pv) == -1)
-                {
-                    swap(storeIndex, i);
-                    storeIndex++;
-                }
-            }
-
-            recommendLeft = null;
-            recommendRight = null;
-
-            if((storeIndex - left) > 0) 
-            {
-                recommendLeft = arr[(int)(left + (Math.floor(Math.random() * (storeIndex - left))))];
-                System.out.println("left recommendation: " + recommendLeft);
-            }
-
-            if((right - storeIndex + 1) > 0)
-            {
-                recommendRight = arr[(int)(storeIndex + (Math.floor(Math.random() * (right - storeIndex + 1))))];
-                System.out.println("right recommendation: " + recommendRight);
-            }
-
-            System.out.println("store index: " + storeIndex);
-        }
-        
-        if (same)
-            System.out.println("same!");
+        if(initialRun)
+            workArray = ParallelQuickSelect.initialize(arr, pv);
         
         else
-            System.out.println("not same!");
+        {
+            same = ParallelQuickSelect.checkSameValues(workArray);
+
+            if(same == null)
+            {
+                ParallelQuickSelect.goParallel(arr, pv);
+                /*
+                storeIndex = left;
+
+                for(int i = left; i <= right; i++)
+                {
+                    if (arr[i].compareTo(pv) == -1)
+                    {
+                        swap(storeIndex, i);
+                        storeIndex++;
+                    }
+                }
+                */
+
+                recommendLeft = null;
+                recommendRight = null;
+
+                if((storeIndex - left) > 0) 
+                    recommendLeft = arr[(int)(left + (Math.floor(Math.random() * (storeIndex - left))))];
+
+                if((right - storeIndex + 1) > 0)
+                    recommendRight = arr[(int)(storeIndex + (Math.floor(Math.random() * (right - storeIndex + 1))))];
+            }
+        }
         
         return same;
     }
@@ -130,9 +127,6 @@ public class ParNode {
     {
         boolean same = true;
         Comparable temp = arr[left];
-        
-        //System.out.println("left is............" + left);
-        //System.out.println("right is............" + right);
         
         for (int i = left; i <= right; i++)
         {
@@ -171,17 +165,13 @@ public class ParNode {
                 NodeSetup s = (NodeSetup) p.pack;
                 arr = s.sub;
                 pv = s.pv;
-                //System.out.println(Arrays.toString(arr));
-                //System.out.println("Starting...pv:"+pv);
-                
                 right = arr.length - 1;
                 
-                if(partition())
-                {
+                if(partition(true))
                     reply = Message.getPacket(Message.SET_SAMEVALUE);
-                } else {
+                
+                else 
                     reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
-                }
                 
                 sendPacket(reply);
                 
@@ -191,15 +181,12 @@ public class ParNode {
                 pv = pl.pv;
                               
                 right = storeIndex - 1;
-                System.out.println("SET_GO_LEFT...right:"+storeIndex+"PV:"+pv);
-                //System.out.println(Arrays.toString(arr));
                 
-                if(partition())
-                {
+                if(partition(false))
                     reply = Message.getPacket(Message.SET_SAMEVALUE);
-                } else {
+                
+                else 
                     reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
-                }
                 
                 sendPacket(reply);
                
@@ -209,15 +196,12 @@ public class ParNode {
                 pv = pr.pv;
                 
                 left = storeIndex;
-                System.out.println("SET_GO_RIGHT...left:"+storeIndex+"PV:"+pv);
-                //System.out.println(Arrays.toString(arr));
                 
-                if(partition())
-                {
+                if(partition(false))
                     reply = Message.getPacket(Message.SET_SAMEVALUE);
-                } else {
+                
+                else 
                     reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
-                }
                 
                 sendPacket(reply);
                 
