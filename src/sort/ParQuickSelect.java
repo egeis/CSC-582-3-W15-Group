@@ -17,17 +17,19 @@ public class ParQuickSelect
 		System.out.print("Creating sample array...");
 		
 		// Create a sample array of specified size to run the algorithm on
-		int[] sample = new int[10000000];
-		
-        for(int i = 0; i < sample.length; i++) 
+		//int[] sample = new int[10000000];
+                int[] sample = {5, 9, 1, 7, 2, 5, 6, 1, 3, 4, 2, 3, 6, 8, 8, 3};
+	
+        
+        /*for(int i = 0; i < sample.length; i++) 
         {
             sample[i] = (int) (new Random().nextDouble() * 100);
-        }
+        }*/
 		
         System.out.println("Done.");
         
         // k-th value
-		int origK = 100;
+		int origK = 5;
 		int k = origK;
 		
 		// Thread pool size set by number of available processors

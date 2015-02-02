@@ -19,6 +19,7 @@ public class QuickSelect
 		
 		for(int i = left; i <= right; i++)
 		{
+                    //System.out.println(list[i] + " compared to " + pivotValue + " is " + (list[i].compareTo(pivotValue)));
                         if (list[i].compareTo(pivotValue) < 0)
 			//if (list[i] < pivotValue)
 			{

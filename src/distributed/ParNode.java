@@ -33,14 +33,16 @@ public class ParNode {
     
     private int left = 0;
     private int right = 0;
-    private int storeIndex = 0;
+    //private int storeIndex = 0;
     
     private Comparable recommendLeft = null;
     private Comparable recommendRight = null;
     
-    private WorkerThread[] workArray = null;
+    private ParallelQuickSelect pqs = new ParallelQuickSelect();
     
-    private ParNode()
+    private boolean goLeft = false;
+    
+    private ParNode() throws InterruptedException
     {        
         try {
             server = new ServerSocket(PORT_NUMBER);
@@ -84,18 +86,18 @@ public class ParNode {
       */
     public boolean partition(boolean initialRun) throws InterruptedException
     {
-        String same;
+        String same = null;
         
         if(initialRun)
-            workArray = ParallelQuickSelect.initialize(arr, pv);
+            pqs.initialize(arr, pv);
         
         else
         {
-            same = ParallelQuickSelect.checkSameValues(workArray);
+            same = pqs.checkSameValues();
 
             if(same == null)
             {
-                ParallelQuickSelect.goParallel(arr, pv);
+                pqs.goParallel(pv, goLeft);
                 /*
                 storeIndex = left;
 
@@ -108,19 +110,23 @@ public class ParNode {
                     }
                 }
                 */
-
-                recommendLeft = null;
-                recommendRight = null;
-
-                if((storeIndex - left) > 0) 
-                    recommendLeft = arr[(int)(left + (Math.floor(Math.random() * (storeIndex - left))))];
-
-                if((right - storeIndex + 1) > 0)
-                    recommendRight = arr[(int)(storeIndex + (Math.floor(Math.random() * (right - storeIndex + 1))))];
             }
         }
         
-        return same;
+        recommendLeft = null;
+        recommendRight = null;
+
+        if(pqs.leftTotal > 0) 
+            recommendLeft = pqs.setRecommendLeft();
+
+        if(pqs.rightTotal > 0)
+            recommendRight = pqs.setRecommendRight();
+
+        if (same == null)
+            return false;
+        
+        else
+            return true;
     }
     
     private boolean checkSameValue()
@@ -154,7 +160,7 @@ public class ParNode {
         }
     }
     
-    private void parsePacket(Packet p)
+    private void parsePacket(Packet p) throws InterruptedException
     {
         int type = p.type;
         Packet reply;
@@ -171,7 +177,7 @@ public class ParNode {
                     reply = Message.getPacket(Message.SET_SAMEVALUE);
                 
                 else 
-                    reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
+                    reply = Message.getPacket(Message.SET_RESULTS, pqs.leftTotal, pqs.rightTotal, recommendRight, recommendLeft);
                 
                 sendPacket(reply);
                 
@@ -179,14 +185,14 @@ public class ParNode {
             case Message.SET_GO_LEFT:
                 NodePivot pl = (NodePivot) p.pack;
                 pv = pl.pv;
-                              
-                right = storeIndex - 1;
+                goLeft = true;              
+                //right = storeIndex - 1;
                 
                 if(partition(false))
                     reply = Message.getPacket(Message.SET_SAMEVALUE);
                 
                 else 
-                    reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
+                    reply = Message.getPacket(Message.SET_RESULTS, pqs.leftTotal, pqs.rightTotal, recommendRight, recommendLeft);
                 
                 sendPacket(reply);
                
@@ -194,24 +200,26 @@ public class ParNode {
             case Message.SET_GO_RIGHT:
                 NodePivot pr = (NodePivot) p.pack;
                 pv = pr.pv;
-                
-                left = storeIndex;
+                goLeft = false;
+                //left = storeIndex;
                 
                 if(partition(false))
                     reply = Message.getPacket(Message.SET_SAMEVALUE);
                 
                 else 
-                    reply = Message.getPacket(Message.SET_RESULTS, storeIndex - left, right - storeIndex + 1, recommendRight, recommendLeft);
+                    reply = Message.getPacket(Message.SET_RESULTS, pqs.leftTotal, pqs.rightTotal, recommendRight, recommendLeft);
                 
                 sendPacket(reply);
                 
                 break;
             case Message.GET_VALUE:
-                if (left == arr.length)
+                Comparable value = pqs.empty();
+                
+                if (value == null)
                     reply = Message.getPacket(Message.SET_KVALUE, null);
              
                 else
-                    reply = Message.getPacket(Message.SET_KVALUE, arr[left]);
+                    reply = Message.getPacket(Message.SET_KVALUE, value);
                 
                 sendPacket(reply);
                 
@@ -224,7 +232,7 @@ public class ParNode {
         }
     }
     
-    public static void main(String[] args)
+    public static void main(String[] args) throws InterruptedException
     {
         if(args.length > 0)
         {
